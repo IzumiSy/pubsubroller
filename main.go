@@ -45,13 +45,16 @@ func main() {
 
 	yamlBytes, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		panic(err) // TODO: もっといいエラー表示
+		panic(err)
 	}
 
 	fmt.Println("Target project ID:", projectId)
 
 	configration := Configuration{}
 	err = yaml.Unmarshal(yamlBytes, &configration)
+	if err != nil {
+		panic(err)
+	}
 
 	// variablesの取得
 
