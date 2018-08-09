@@ -78,23 +78,35 @@ func main() {
 	// topicを並列処理で作成
 
 	egTopics := errgroup.Group{}
+	topicSkippedCount := 0
+	topicCreatedCount := 0
 
 	fmt.Printf("\nStart creating topics...\n\n")
 	for topicName, _ := range configration.Topics {
 		topicName := topicName
 
 		egTopics.Go(func() error {
-			return createTopic(client, ctx, topicName)
+			isCreated, err := createTopic(client, ctx, topicName)
+			if isCreated {
+				topicCreatedCount += 1
+			} else {
+				topicSkippedCount += 1
+			}
+			return err
 		})
 	}
 
 	if err := egTopics.Wait(); err != nil {
-		fmt.Println("Error on creating topics:", err.Error())
+		panic(err)
 	}
+
+	fmt.Printf("\nTopics Created: %d, Skipped: %d\n", topicCreatedCount, topicSkippedCount)
 
 	// subscriptionを並列処理で作成
 
 	egSubscriptions := errgroup.Group{}
+	subscriptionSkippedCount := 0
+	subscriptionCreatedCount := 0
 
 	fmt.Printf("\nStart creating subscriptions...\n\n")
 	for topicName, topic := range configration.Topics {
@@ -110,51 +122,59 @@ func main() {
 
 			subscription.Endpoint = endpoint
 			egSubscriptions.Go(func() error {
-				return CreateSubscription(client, ctx, subscription, topicName)
+				isCreated, err := CreateSubscription(client, ctx, subscription, topicName)
+				if isCreated {
+					subscriptionCreatedCount += 1
+				} else {
+					subscriptionSkippedCount += 1
+				}
+				return err
 			})
 		}
 	}
 
 	if err := egSubscriptions.Wait(); err != nil {
-		fmt.Println("Error on creating subscriptions:", err.Error())
+		panic(err)
 	}
+
+	fmt.Printf("\nSubscriptions Created: %d, Skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
 
 	return
 }
 
-func createTopic(client *pubsub.Client, ctx context.Context, topicId string) error {
+func createTopic(client *pubsub.Client, ctx context.Context, topicId string) (bool, error) {
 	exists, err := client.Topic(topicId).Exists(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if exists {
 		fmt.Println("Skip:", topicId)
-		return nil
+		return false, nil
 	}
 
 	_, err = client.CreateTopic(ctx, topicId)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	fmt.Println("Created:", topicId)
-	return nil
+	return true, nil
 }
 
-func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string) error {
+func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string) (bool, error) {
 	name := subscription.Name
 	endpoint := subscription.Endpoint
 
 	s := client.Subscription(name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if exists {
 		fmt.Println("Skip:", name)
-		return nil
+		return false, nil
 	}
 
 	pushConfig := pubsub.PushConfig{
@@ -166,7 +186,7 @@ func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription
 		pushConfig = pubsub.PushConfig{}
 	} else {
 		if subscription.Endpoint == "" {
-			return fmt.Errorf("Failed because no endpoint specified to subscription: %s", name)
+			return false, fmt.Errorf("Failed because no endpoint specified to subscription: %s", name)
 		}
 	}
 
@@ -176,8 +196,8 @@ func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription
 		PushConfig: pushConfig,
 	})
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
