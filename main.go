@@ -122,7 +122,7 @@ func main() {
 
 			subscription.Endpoint = endpoint
 			egSubscriptions.Go(func() error {
-				isCreated, err := CreateSubscription(client, ctx, subscription, topicName)
+				isCreated, err := createSubscription(client, ctx, subscription, topicName)
 				if isCreated {
 					subscriptionCreatedCount += 1
 				} else {
@@ -162,7 +162,7 @@ func createTopic(client *pubsub.Client, ctx context.Context, topicId string) (bo
 	return true, nil
 }
 
-func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string) (bool, error) {
+func createSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string) (bool, error) {
 	name := subscription.Name
 	endpoint := subscription.Endpoint
 
