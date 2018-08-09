@@ -199,5 +199,6 @@ func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription
 		return false, err
 	}
 
+	fmt.Println("Created:", name)
 	return true, nil
 }
