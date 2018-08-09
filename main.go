@@ -102,12 +102,13 @@ func main() {
 		topic := topic
 
 		for _, subscription := range topic.Subsciptions {
+			subscription := subscription
 			endpoint := subscription.Endpoint
 			for key, value := range variables {
 				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
 			}
 
-			subscription := subscription
+			subscription.Endpoint = endpoint
 			egSubscriptions.Go(func() error {
 				return CreateSubscription(client, ctx, subscription, topicName)
 			})
