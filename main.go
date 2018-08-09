@@ -48,7 +48,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Target project ID:", projectId)
+	fmt.Printf("Target project ID: %s\n\n", projectId)
 
 	configration := Configuration{}
 	err = yaml.Unmarshal(yamlBytes, &configration)
@@ -78,8 +78,10 @@ func main() {
 
 	egTopics := errgroup.Group{}
 
-	fmt.Println("[Start creating topics...]")
+	fmt.Printf("\nStart creating topics...\n\n")
 	for topicName, _ := range configration.Topics {
+		topicName := topicName
+
 		egTopics.Go(func() error {
 			return createTopic(client, ctx, topicName)
 		})
@@ -93,8 +95,11 @@ func main() {
 
 	egSubscriptions := errgroup.Group{}
 
-	fmt.Println("[Start creating subscriptions...]")
+	fmt.Printf("\nStart creating subscriptions...\n\n")
 	for topicName, topic := range configration.Topics {
+		topicName := topicName
+		topic := topic
+
 		for _, subscription := range topic.Subsciptions {
 			endpoint := subscription.Endpoint
 			for key, value := range variables {
