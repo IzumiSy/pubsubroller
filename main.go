@@ -22,7 +22,8 @@ type Topic struct {
 
 type Subscription struct {
 	Name     string `yaml:"name"`
-	Endpoint string `yaml:"endpoint"`
+	Endpoint string `yaml:"endpoint,omitempty"`
+	Pull     bool   `yaml:"pull,omitempty"`
 }
 
 func main() {
@@ -106,10 +107,9 @@ func main() {
 				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
 			}
 
+			subscription := subscription
 			egSubscriptions.Go(func() error {
-				topicName := topicName
-				subscription := subscription
-				return CreateSubscription(client, ctx, subscription.Name, topicName)
+				return CreateSubscription(client, ctx, subscription, topicName)
 			})
 		}
 	}
@@ -141,21 +141,38 @@ func createTopic(client *pubsub.Client, ctx context.Context, topicId string) err
 	return nil
 }
 
-func CreateSubscription(client *pubsub.Client, ctx context.Context, subscriptionName string, topicName string) error {
-	s := client.Subscription(subscriptionName)
+func CreateSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string) error {
+	name := subscription.Name
+	endpoint := subscription.Endpoint
+
+	s := client.Subscription(name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
 		return err
 	}
 
 	if exists {
-		fmt.Println("Skip:", subscriptionName)
+		fmt.Println("Skip:", name)
 		return nil
 	}
 
-	_topic := client.Topic(topicName)
-	_, err = client.CreateSubscription(ctx, subscriptionName, pubsub.SubscriptionConfig{
-		Topic: _topic,
+	pushConfig := pubsub.PushConfig{
+		Endpoint: endpoint,
+	}
+
+	// 空のpubsub.PushConfigを指定してpullなsubscriptionにする
+	if subscription.Pull {
+		pushConfig = pubsub.PushConfig{}
+	} else {
+		if subscription.Endpoint == "" {
+			return fmt.Errorf("Failed because no endpoint specified to subscription: %s", name)
+		}
+	}
+
+	topic := client.Topic(topicName)
+	_, err = client.CreateSubscription(ctx, name, pubsub.SubscriptionConfig{
+		Topic:      topic,
+		PushConfig: pushConfig,
 	})
 	if err != nil {
 		return err
