@@ -13,6 +13,8 @@ $ pubsubroller -help
 Usage of pubsubroller:
   -config string
     	configuration file path
+  -endpoint string
+    	service endpoint # you can use this for pub/sub emulator
   -projectId string
     	target GCP project ID
 ```

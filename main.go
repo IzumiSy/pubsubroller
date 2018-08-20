@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/option"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"strings"
@@ -29,17 +30,19 @@ type Subscription struct {
 func main() {
 	projectIdPtr := flag.String("projectId", "", "target GCP project ID")
 	configFilePathPtr := flag.String("config", "", "configuration file path")
+	endpointPtr := flag.String("endpoint", "", "service endpoint")
 	flag.Parse()
 
 	projectId := *projectIdPtr
 	configFilePath := *configFilePathPtr
+	endpoint := *endpointPtr
+
+	// projectIdとconfigFilePathは必須パラメータ
 
 	if projectId == "" {
 		fmt.Println("Error: GCP project ID required with `-projectId` option.")
 		return
-	}
-
-	if configFilePath == "" {
+	} else if configFilePath == "" {
 		fmt.Println("Error: no configuration file specified.")
 		return
 	}
@@ -66,10 +69,16 @@ func main() {
 		fmt.Println(key, "=", _value)
 	}
 
-	// pubsubクライアントの生成
+	// クライアント生成
+	// endpointが指定されていればここでクライアントに設定する
+
+	var opt option.ClientOption
+	if endpoint != "" {
+		opt = option.WithEndpoint(endpoint)
+	}
 
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectId)
+	client, err := pubsub.NewClient(ctx, projectId, opt)
 	if err != nil {
 		fmt.Println("Error on initializing pubsub client:", err.Error())
 		return
