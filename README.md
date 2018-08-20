@@ -25,8 +25,9 @@ variables:
   url: "https://service-of-${projectId}/subscriber"
 topics:
   invitedUser:
-    - name: sendInvitationMail
-      endpoint: "${url}/sendInvitationMail"
-    - name: sendGroupNotification
-      endpoint: "${url}/sendGroupNotification"
+    subscriptions:
+      - name: sendInvitationMail
+        endpoint: "${url}/sendInvitationMail"
+      - name: sendGroupNotification
+        endpoint: "${url}/sendGroupNotification"
 ```
