@@ -31,11 +31,13 @@ func main() {
 	projectIdPtr := flag.String("projectId", "", "target GCP project ID")
 	configFilePathPtr := flag.String("config", "", "configuration file path")
 	endpointPtr := flag.String("endpoint", "", "service endpoint")
+	isDryRunPtr := flag.Bool("dry", false, "dry run")
 	flag.Parse()
 
 	projectId := *projectIdPtr
 	configFilePath := *configFilePathPtr
 	endpoint := *endpointPtr
+	isDryRun := *isDryRunPtr
 
 	// projectIdとconfigFilePathは必須パラメータ
 
@@ -95,7 +97,7 @@ func main() {
 		topicName := topicName
 
 		egTopics.Go(func() error {
-			isCreated, err := createTopic(client, ctx, topicName)
+			isCreated, err := createTopic(client, ctx, topicName, isDryRun)
 			if isCreated {
 				topicCreatedCount += 1
 			} else {
@@ -131,7 +133,7 @@ func main() {
 
 			subscription.Endpoint = endpoint
 			egSubscriptions.Go(func() error {
-				isCreated, err := createSubscription(client, ctx, subscription, topicName)
+				isCreated, err := createSubscription(client, ctx, subscription, topicName, isDryRun)
 				if isCreated {
 					subscriptionCreatedCount += 1
 				} else {
@@ -151,61 +153,70 @@ func main() {
 	return
 }
 
-func createTopic(client *pubsub.Client, ctx context.Context, topicId string) (bool, error) {
-	exists, err := client.Topic(topicId).Exists(ctx)
-	if err != nil {
-		return false, err
-	}
+func createTopic(client *pubsub.Client, ctx context.Context, topicId string, isDryRun bool) (bool, error) {
+	// dryrunであれば必ず成功扱いとするため実行をスキップする
 
-	if exists {
-		fmt.Println("Skip:", topicId)
-		return false, nil
-	}
+	if !isDryRun {
+		exists, err := client.Topic(topicId).Exists(ctx)
+		if err != nil {
+			return false, err
+		}
 
-	_, err = client.CreateTopic(ctx, topicId)
-	if err != nil {
-		return false, err
+		if exists {
+			fmt.Println("Skip:", topicId)
+			return false, nil
+		}
+
+		_, err = client.CreateTopic(ctx, topicId)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	fmt.Println("Created:", topicId)
 	return true, nil
 }
 
-func createSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string) (bool, error) {
+func createSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string, isDryRun bool) (bool, error) {
 	name := subscription.Name
-	endpoint := subscription.Endpoint
 
-	s := client.Subscription(name)
-	exists, err := s.Exists(ctx)
-	if err != nil {
-		return false, err
-	}
+	// dryrunであれば必ず成功扱いとするため実行をスキップする
 
-	if exists {
-		fmt.Println("Skip:", name)
-		return false, nil
-	}
+	if !isDryRun {
+		endpoint := subscription.Endpoint
 
-	pushConfig := pubsub.PushConfig{
-		Endpoint: endpoint,
-	}
-
-	// 空のpubsub.PushConfigを指定してpullなsubscriptionにする
-	if subscription.Pull {
-		pushConfig = pubsub.PushConfig{}
-	} else {
-		if subscription.Endpoint == "" {
-			return false, fmt.Errorf("Failed because no endpoint specified to subscription: %s", name)
+		s := client.Subscription(name)
+		exists, err := s.Exists(ctx)
+		if err != nil {
+			return false, err
 		}
-	}
 
-	topic := client.Topic(topicName)
-	_, err = client.CreateSubscription(ctx, name, pubsub.SubscriptionConfig{
-		Topic:      topic,
-		PushConfig: pushConfig,
-	})
-	if err != nil {
-		return false, err
+		if exists {
+			fmt.Println("Skip:", name)
+			return false, nil
+		}
+
+		pushConfig := pubsub.PushConfig{
+			Endpoint: endpoint,
+		}
+
+		// 空のpubsub.PushConfigを指定してpullなsubscriptionにする
+		if subscription.Pull {
+			pushConfig = pubsub.PushConfig{}
+		} else {
+			if subscription.Endpoint == "" {
+				return false, fmt.Errorf("Failed because no endpoint specified to subscription: %s", name)
+			}
+		}
+
+		topic := client.Topic(topicName)
+		_, err = client.CreateSubscription(ctx, name, pubsub.SubscriptionConfig{
+			Topic:      topic,
+			PushConfig: pushConfig,
+		})
+		if err != nil {
+			return false, err
+		}
 	}
 
 	fmt.Println("Created:", name)
