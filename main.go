@@ -58,8 +58,8 @@ func main() {
 
 	fmt.Printf("Target project ID: %s\n\n", projectId)
 
-	configration := Configuration{}
-	err = yaml.Unmarshal(yamlBytes, &configration)
+	configuration := Configuration{}
+	err = yaml.Unmarshal(yamlBytes, &configuration)
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	// variablesの取得
 
 	variables := make(map[string]string)
-	for key, value := range configration.Variables {
+	for key, value := range configuration.Variables {
 		_value := strings.Replace(value, "${projectId}", projectId, -1)
 		variables[key] = _value
 		fmt.Println(key, "=", _value)
@@ -98,7 +98,7 @@ func main() {
 	topicCreatedCount := 0
 
 	fmt.Printf("\nStart creating topics...\n\n")
-	for topicName, _ := range configration.Topics {
+	for topicName, _ := range configuration.Topics {
 		topicName := topicName
 
 		egTopics.Go(func() error {
@@ -125,7 +125,7 @@ func main() {
 	subscriptionCreatedCount := 0
 
 	fmt.Printf("\nStart creating subscriptions...\n\n")
-	for topicName, topic := range configration.Topics {
+	for topicName, topic := range configuration.Topics {
 		topicName := topicName
 		topic := topic
 
