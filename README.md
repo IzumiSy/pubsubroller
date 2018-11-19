@@ -21,7 +21,7 @@ Usage of pubsubroller:
     	target GCP project ID
 ```
 
-## Configuration Example
+### Configuration Example
 ```yaml
 variables:
   url: "https://service-of-${projectId}/subscriber"
@@ -32,4 +32,10 @@ topics:
         endpoint: "${url}/sendInvitationMail"
       - name: sendGroupNotification
         endpoint: "${url}/sendGroupNotification"
+```
+
+## Development
+```bash
+$ dep ensure
+$ make build
 ```
