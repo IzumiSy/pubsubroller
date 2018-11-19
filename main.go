@@ -32,12 +32,14 @@ func main() {
 	configFilePathPtr := flag.String("config", "", "configuration file path")
 	endpointPtr := flag.String("endpoint", "", "service endpoint")
 	isDryRunPtr := flag.Bool("dry", false, "dry run")
+	isDeleteModePtr := flag.Bool("delete", false, "delete all topics and their subscriptions")
 	flag.Parse()
 
 	projectId := *projectIdPtr
 	configFilePath := *configFilePathPtr
 	endpoint := *endpointPtr
 	isDryRun := *isDryRunPtr
+	isDeleteMode := *isDeleteModePtr
 
 	// projectIdとconfigFilePathは必須パラメータ
 
