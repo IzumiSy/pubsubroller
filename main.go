@@ -157,19 +157,18 @@ func main() {
 }
 
 func createTopic(client *pubsub.Client, ctx context.Context, topicId string, isDryRun bool) (bool, error) {
-	// dryrunであれば必ず成功扱いとするため実行をスキップする
+	exists, err := client.Topic(topicId).Exists(ctx)
+	if err != nil {
+		return false, err
+	}
 
+	if exists {
+		fmt.Println("Skip:", topicId)
+		return false, nil
+	}
+
+	// dryrunであれば必ず成功扱いとするため作成系の実行はスキップする
 	if !isDryRun {
-		exists, err := client.Topic(topicId).Exists(ctx)
-		if err != nil {
-			return false, err
-		}
-
-		if exists {
-			fmt.Println("Skip:", topicId)
-			return false, nil
-		}
-
 		_, err = client.CreateTopic(ctx, topicId)
 		if err != nil {
 			return false, err
@@ -183,22 +182,21 @@ func createTopic(client *pubsub.Client, ctx context.Context, topicId string, isD
 func createSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string, isDryRun bool) (bool, error) {
 	name := subscription.Name
 
-	// dryrunであれば必ず成功扱いとするため実行をスキップする
+	endpoint := subscription.Endpoint
 
+	s := client.Subscription(name)
+	exists, err := s.Exists(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	if exists {
+		fmt.Println("Skip:", name)
+		return false, nil
+	}
+
+	// dryrunであれば必ず成功扱いとするため作成系の実行はスキップする
 	if !isDryRun {
-		endpoint := subscription.Endpoint
-
-		s := client.Subscription(name)
-		exists, err := s.Exists(ctx)
-		if err != nil {
-			return false, err
-		}
-
-		if exists {
-			fmt.Println("Skip:", name)
-			return false, nil
-		}
-
 		pushConfig := pubsub.PushConfig{
 			Endpoint: endpoint,
 		}
