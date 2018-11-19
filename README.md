@@ -13,6 +13,8 @@ $ pubsubroller -help
 Usage of pubsubroller:
   -config string
     	configuration file path
+  -dry
+    	dry run
   -endpoint string
     	service endpoint # you can use this for pub/sub emulator
   -projectId string
