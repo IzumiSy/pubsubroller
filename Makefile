@@ -1,7 +1,9 @@
-.PHONY: build clean
+.PHONY: build clean rebuild
 
-build: main.go create_subscriptions.go create_topics.go
-	go build -o pubsubroller main.go create_subscriptions.go create_topics.go
+pubsubroller: main.go create_subscriptions.go create_topics.go delete_subscriptions.go delete_topics.go
+	go build -o pubsubroller main.go create_subscriptions.go create_topics.go delete_subscriptions.go delete_topics.go
+
+build: pubsubroller
 
 clean: pubsubroller
 	rm -r pubsubroller

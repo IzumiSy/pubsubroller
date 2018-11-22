@@ -27,9 +27,8 @@ type Subscription struct {
 }
 
 type Options struct {
-	IsDeleteMode bool
-	IsDryRun     bool
-	Variables    map[string]string
+	IsDryRun  bool
+	Variables map[string]string
 }
 
 func main() {
@@ -96,16 +95,20 @@ func main() {
 		return
 	}
 
-	// 実行オプションの作成
+	// 実行オプションを作成して実行
 
 	opts := Options{
-		IsDeleteMode: isDeleteMode,
-		IsDryRun:     isDryRun,
-		Variables:    variables,
+		IsDryRun:  isDryRun,
+		Variables: variables,
 	}
 
-	createTopics(client, ctx, configuration, opts)
-	createSubscriptions(client, ctx, configuration, opts)
+	if isDeleteMode {
+		deleteTopics(client, ctx, configuration, opts)
+		deleteSubscriptions(client, ctx, configuration, opts)
+	} else {
+		createTopics(client, ctx, configuration, opts)
+		createSubscriptions(client, ctx, configuration, opts)
+	}
 
 	return
 }
