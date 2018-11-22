@@ -42,12 +42,11 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, config Conf
 		panic(err)
 	}
 
-	fmt.Printf("\nSubscriptions Created: %d, Skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
+	fmt.Printf("\nSubscriptions created: %d, skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
 }
 
 func createSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string, isDryRun bool) (bool, error) {
 	name := subscription.Name
-
 	endpoint := subscription.Endpoint
 
 	s := client.Subscription(name)

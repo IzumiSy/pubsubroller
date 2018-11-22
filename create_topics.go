@@ -31,7 +31,7 @@ func createTopics(client *pubsub.Client, ctx context.Context, config Configurati
 		panic(err)
 	}
 
-	fmt.Printf("\nTopics Created: %d, Skipped: %d\n", topicCreatedCount, topicSkippedCount)
+	fmt.Printf("\nTopics created: %d, skipped: %d\n", topicCreatedCount, topicSkippedCount)
 }
 
 func createTopic(client *pubsub.Client, ctx context.Context, topicId string, isDryRun bool) (bool, error) {
