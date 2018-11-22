@@ -5,5 +5,5 @@ pubsubroller: main.go create_subscriptions.go create_topics.go delete_subscripti
 
 build: pubsubroller
 
-clean: pubsubroller
-	rm -r pubsubroller
+clean:
+	rm -f pubsubroller

@@ -53,7 +53,7 @@ func deleteSubscription(client *pubsub.Client, ctx context.Context, subscription
 	}
 
 	// dryrunであれば必ず成功扱いとするため削除系の実行はスキップする
-	if isDryRun {
+	if !isDryRun {
 		if err := s.Delete(ctx); err != nil {
 			return false, err
 		}
