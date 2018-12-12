@@ -9,14 +9,16 @@ $ go get github.com/IzumiSy/pubsubroller
 
 ## Usage
 ```bash
-$ pubsubroller -help
+ $ pubsubroller -help
 Usage of pubsubroller:
   -config string
     	configuration file path
+  -delete
+    	delete all topics and their subscriptions
   -dry
     	dry run
   -endpoint string
-    	service endpoint # you can use this for pub/sub emulator
+    	service endpoint
   -projectId string
     	target GCP project ID
 ```
