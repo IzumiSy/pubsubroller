@@ -5,15 +5,16 @@ import (
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
+	config "pubsubroller/config"
 )
 
-func deleteTopics(client *pubsub.Client, ctx context.Context, config Configuration, opts Options) {
+func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
 	egTopics := errgroup.Group{}
 	topicSkippedCount := 0
 	topicDeletedCount := 0
 
 	fmt.Printf("\nStart deleting topics...\n\n")
-	for topicName, _ := range config.Topics {
+	for topicName, _ := range conf.Topics() {
 		topicName := topicName
 
 		egTopics.Go(func() error {

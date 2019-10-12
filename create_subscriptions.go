@@ -3,37 +3,47 @@ package main
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
+	"github.com/pkg/errors"
 	"fmt"
 	"golang.org/x/sync/errgroup"
 	"strings"
+	subscription "pubsubroller/subscription"
+	config "pubsubroller/config"
 )
 
-func createSubscriptions(client *pubsub.Client, ctx context.Context, config Configuration, opts Options) {
+func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
 	egSubscriptions := errgroup.Group{}
 	subscriptionSkippedCount := 0
 	subscriptionCreatedCount := 0
 
 	fmt.Printf("\nStart creating subscriptions...\n\n")
-	for topicName, topic := range config.Topics {
+	for topicName, topic := range conf.Topics() {
 		topicName := topicName
 		topic := topic
 
-		for _, subscription := range topic.Subsciptions {
-			subscription := subscription
-			endpoint := subscription.Endpoint
-			for key, value := range opts.Variables {
-				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
-			}
-
-			subscription.Endpoint = endpoint
+		for _, sub := range topic.Subscriptions() {
 			egSubscriptions.Go(func() error {
-				isCreated, err := createSubscription(client, ctx, subscription, topicName, opts.IsDryRun)
-				if isCreated {
-					subscriptionCreatedCount += 1
-				} else {
-					subscriptionSkippedCount += 1
+				endpoint := sub.Endpoint
+				for key, value := range opts.Variables {
+					endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
 				}
-				return err
+
+				err :=
+					subscription.
+						New(sub.Name, endpoint, sub.Pull, client.Topic(topicName)).
+						Create(client, ctx)
+
+				if err != nil {
+					if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
+						subscriptionSkippedCount += 1
+						return nil
+					} else {
+						return err
+					}
+				}
+
+				subscriptionCreatedCount += 1
+				return nil
 			})
 		}
 	}
@@ -43,48 +53,4 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, config Conf
 	}
 
 	fmt.Printf("\nSubscriptions created: %d, skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
-}
-
-func createSubscription(client *pubsub.Client, ctx context.Context, subscription Subscription, topicName string, isDryRun bool) (bool, error) {
-	name := subscription.Name
-	endpoint := subscription.Endpoint
-
-	s := client.Subscription(name)
-	exists, err := s.Exists(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	if exists {
-		fmt.Println("Skip:", name)
-		return false, nil
-	}
-
-	// dryrunであれば必ず成功扱いとするため作成系の実行はスキップする
-	if !isDryRun {
-		pushConfig := pubsub.PushConfig{
-			Endpoint: endpoint,
-		}
-
-		// 空のpubsub.PushConfigを指定してpullなsubscriptionにする
-		if subscription.Pull {
-			pushConfig = pubsub.PushConfig{}
-		} else {
-			if subscription.Endpoint == "" {
-				return false, fmt.Errorf("Failed because no endpoint specified to subscription: %s", name)
-			}
-		}
-
-		topic := client.Topic(topicName)
-		_, err = client.CreateSubscription(ctx, name, pubsub.SubscriptionConfig{
-			Topic:      topic,
-			PushConfig: pushConfig,
-		})
-		if err != nil {
-			return false, err
-		}
-	}
-
-	fmt.Println("Created:", name)
-	return true, nil
 }

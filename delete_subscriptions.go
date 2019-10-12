@@ -5,19 +5,18 @@ import (
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
+	config "pubsubroller/config"
 )
 
-func deleteSubscriptions(client *pubsub.Client, ctx context.Context, config Configuration, opts Options) {
+func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
 	egSubscriptions := errgroup.Group{}
 	subscriptionSkippedCount := 0
 	subscriptionDeletedCount := 0
 
 	fmt.Printf("\nStart deleting subscriptions...\n\n")
 
-	for _, topic := range config.Topics {
-		topic := topic
-
-		for _, subscription := range topic.Subsciptions {
+	for _, topic := range conf.Topics() {
+		for _, subscription := range topic.Subscriptions() {
 			subscription := subscription
 
 			egSubscriptions.Go(func() error {
