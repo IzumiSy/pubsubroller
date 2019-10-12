@@ -3,12 +3,12 @@ package main
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/pkg/errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
-	"strings"
-	subscription "pubsubroller/subscription"
 	config "pubsubroller/config"
+	subscription "pubsubroller/subscription"
+	"strings"
 )
 
 func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
