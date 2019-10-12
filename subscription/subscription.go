@@ -8,9 +8,9 @@ import (
 
 type Subscription struct {
 	topic 	 *pubsub.Topic
-	name     string `yaml:"name"`
-	endpoint string `yaml:"endpoint,omitempty"`
-	pull     bool   `yaml:"pull,omitempty"`
+	name     string 
+	endpoint string 
+	pull     bool   
 }
 
 func New(name, endpoint string, pull bool, topic *pubsub.Topic) Subscription {
