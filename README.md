@@ -51,6 +51,5 @@ $ gcloud auth application-default login
 
 ## Development
 ```bash
-$ dep ensure
-$ make build
+$ make
 ```
