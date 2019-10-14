@@ -1,30 +1,14 @@
 package main
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"flag"
 	"fmt"
+	config "pubsubroller/config"
+
+	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/option"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"strings"
 )
-
-type Configuration struct {
-	Variables map[string]string `yaml:"variables"`
-	Topics    map[string]Topic  `yaml:"topics"`
-}
-
-type Topic struct {
-	Subsciptions []Subscription `yaml:"subscriptions"`
-}
-
-type Subscription struct {
-	Name     string `yaml:"name"`
-	Endpoint string `yaml:"endpoint,omitempty"`
-	Pull     bool   `yaml:"pull,omitempty"`
-}
 
 type Options struct {
 	IsDryRun  bool
@@ -47,35 +31,18 @@ func main() {
 
 	// projectIdとconfigFilePathは必須パラメータ
 
+	configuration, err := config.Load(configFilePath)
+	if err != nil {
+		panic(err)
+	}
+
 	if projectId == "" {
 		fmt.Println("Error: GCP project ID required with `-projectId` option.")
 		return
-	} else if configFilePath == "" {
-		fmt.Println("Error: no configuration file specified.")
-		return
-	}
-
-	yamlBytes, err := ioutil.ReadFile(configFilePath)
-	if err != nil {
-		panic(err)
 	}
 
 	fmt.Printf("Target project ID: %s\n\n", projectId)
-
-	configuration := Configuration{}
-	err = yaml.Unmarshal(yamlBytes, &configuration)
-	if err != nil {
-		panic(err)
-	}
-
-	// variablesの取得
-
-	variables := make(map[string]string)
-	for key, value := range configuration.Variables {
-		_value := strings.Replace(value, "${projectId}", projectId, -1)
-		variables[key] = _value
-		fmt.Println(key, "=", _value)
-	}
+	variables := configuration.Variables(projectId)
 
 	// クライアント生成
 	// endpointが指定されていればここでクライアントに設定する
@@ -86,6 +53,7 @@ func main() {
 	}
 
 	ctx := context.Background()
+
 	client, err := pubsub.NewClient(ctx, projectId)
 	if opt != nil {
 		client, err = pubsub.NewClient(ctx, projectId, opt)
