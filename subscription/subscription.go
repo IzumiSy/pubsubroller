@@ -26,9 +26,10 @@ func New(name, endpoint string, pull bool, topic *pubsub.Topic) Subscription {
 }
 
 var (
-	INTERNAL_ERR              error = errors.New("Internal error")
-	SUBSCRIPTION_EXISTS_ERR   error = errors.New("Subscription already exists")
-	NO_ENDPOINT_SPECIFIED_ERR error = errors.New("No endpoint specified")
+	INTERNAL_ERR               error = errors.New("Internal error")
+	SUBSCRIPTION_EXISTS_ERR    error = errors.New("Subscription already exists")
+	SUBSCRIPTION_NOT_FOUND_ERR error = errors.New("Subscription not found")
+	NO_ENDPOINT_SPECIFIED_ERR  error = errors.New("No endpoint specified")
 )
 
 func (subscription Subscription) Create(client *pubsub.Client, ctx context.Context) error {
@@ -61,11 +62,22 @@ func (subscription Subscription) Create(client *pubsub.Client, ctx context.Conte
 			PushConfig: pushConfig,
 		},
 	)
+
+	return errors.Wrap(err, INTERNAL_ERR.Error())
+}
+
+func (subscription Subscription) Delete(client *pubsub.Client, ctx context.Context) error {
+	s := client.Subscription(subscription.name)
+	exists, err := s.Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, INTERNAL_ERR.Error())
 	}
 
-	return nil
+	if !exists {
+		return SUBSCRIPTION_NOT_FOUND_ERR
+	}
+
+	return errors.Wrap(s.Delete(ctx), INTERNAL_ERR.Error())
 }
 
 func FromConfig(conf config.Configuration, variables map[string]string, client *pubsub.Client) []Subscription {

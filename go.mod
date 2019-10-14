@@ -5,6 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.25.0
 	github.com/golang/protobuf v1.1.0
+	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/googleapis/gax-go v2.0.0+incompatible
 	github.com/pkg/errors v0.8.1
 	go.opencensus.io v0.14.0

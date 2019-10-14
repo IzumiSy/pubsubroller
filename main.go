@@ -1,12 +1,13 @@
 package main
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"flag"
 	"fmt"
-	"google.golang.org/api/option"
 	config "pubsubroller/config"
+
+	"cloud.google.com/go/pubsub"
+	"google.golang.org/api/option"
 )
 
 type Options struct {
@@ -52,6 +53,7 @@ func main() {
 	}
 
 	ctx := context.Background()
+
 	client, err := pubsub.NewClient(ctx, projectId)
 	if opt != nil {
 		client, err = pubsub.NewClient(ctx, projectId, opt)
