@@ -26,7 +26,13 @@ var (
 	TOPIC_NOT_FOUND_ERR error = errors.New("Topic not found")
 )
 
-func (topic Topic) Create(client *pubsub.Client, ctx context.Context) error {
+type pubsubClient interface {
+	Topic(id string) *pubsub.Topic
+	Subscription(id string) *pubsub.Subscription
+	CreateTopic(ctx context.Context, id string) (*pubsub.Topic, error)
+}
+
+func (topic Topic) Create(client pubsubClient, ctx context.Context) error {
 	exists, err := client.Topic(topic.name).Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, INTERNAL_ERR.Error())
@@ -40,7 +46,7 @@ func (topic Topic) Create(client *pubsub.Client, ctx context.Context) error {
 	return errors.Wrap(err, INTERNAL_ERR.Error())
 }
 
-func (topic Topic) Delete(client *pubsub.Client, ctx context.Context) error {
+func (topic Topic) Delete(client pubsubClient, ctx context.Context) error {
 	tp := client.Topic(topic.name)
 
 	exists, err := tp.Exists(ctx)
@@ -55,7 +61,7 @@ func (topic Topic) Delete(client *pubsub.Client, ctx context.Context) error {
 	return errors.Wrap(tp.Delete(ctx), INTERNAL_ERR.Error())
 }
 
-func FromConfig(conf config.Configuration, variables map[string]string, client *pubsub.Client) []Topic {
+func FromConfig(conf config.Configuration, variables map[string]string, client pubsubClient) []Topic {
 	var topics []Topic
 
 	for topicName, _ := range conf.Topics() {

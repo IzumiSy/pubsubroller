@@ -36,7 +36,13 @@ var (
 	NO_ENDPOINT_SPECIFIED_ERR  error = errors.New("No endpoint specified")
 )
 
-func (subscription Subscription) Create(client *pubsub.Client, ctx context.Context) error {
+type pubsubClient interface {
+	Topic(id string) *pubsub.Topic
+	Subscription(id string) *pubsub.Subscription
+	CreateSubscription(ctx context.Context, id string, cfg pubsub.SubscriptionConfig) (*pubsub.Subscription, error)
+}
+
+func (subscription Subscription) Create(client pubsubClient, ctx context.Context) error {
 	s := client.Subscription(subscription.name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
@@ -69,7 +75,7 @@ func (subscription Subscription) Create(client *pubsub.Client, ctx context.Conte
 	return errors.Wrap(err, INTERNAL_ERR.Error())
 }
 
-func (subscription Subscription) Delete(client *pubsub.Client, ctx context.Context) error {
+func (subscription Subscription) Delete(client pubsubClient, ctx context.Context) error {
 	s := client.Subscription(subscription.name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
@@ -83,7 +89,7 @@ func (subscription Subscription) Delete(client *pubsub.Client, ctx context.Conte
 	return errors.Wrap(s.Delete(ctx), INTERNAL_ERR.Error())
 }
 
-func FromConfig(conf config.Configuration, variables map[string]string, client *pubsub.Client) []Subscription {
+func FromConfig(conf config.Configuration, variables map[string]string, client pubsubClient) []Subscription {
 	var subscriptions []Subscription
 
 	for topicName, topic := range conf.Topics() {
