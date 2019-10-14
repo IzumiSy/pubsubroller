@@ -1,13 +1,8 @@
 .PHONY: build clean rebuild
 
-pubsubroller: main.go create_subscriptions.go create_topics.go delete_subscriptions.go delete_topics.go
+pubsubroller: main.go create.go delete.go 
 	GO111MODULES=on
-	go build -o pubsubroller \
-		main.go \
-		create_subscriptions.go \
-		create_topics.go \
-		delete_subscriptions.go \
-		delete_topics.go
+	go build -o pubsubroller main.go delete.go create.go
 
 build: pubsubroller
 
