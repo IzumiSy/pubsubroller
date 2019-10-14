@@ -22,12 +22,14 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 		tp := tp
 
 		egTopics.Go(func() error {
-			if err := tp.Create(client, ctx); err != nil {
-				if errors.Cause(err) == topic.TOPIC_EXISTS_ERR {
-					topicSkippedCount += 1
-					return nil
-				} else {
-					return err
+			if !opts.IsDryRun {
+				if err := tp.Create(client, ctx); err != nil {
+					if errors.Cause(err) == topic.TOPIC_EXISTS_ERR {
+						topicSkippedCount += 1
+						return nil
+					} else {
+						return err
+					}
 				}
 			}
 

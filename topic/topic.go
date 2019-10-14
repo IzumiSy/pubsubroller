@@ -1,9 +1,11 @@
 package topic
 
 import (
-	"github.com/pkg/errors"
-	"cloud.google.com/go/pubsub"
 	"context"
+	"pubsubroller/config"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/pkg/errors"
 )
 
 type Topic struct {
@@ -15,7 +17,7 @@ func New(name string) Topic {
 }
 
 var (
-	INTERNAL_ERR error = errors.New("Internal error")
+	INTERNAL_ERR     error = errors.New("Internal error")
 	TOPIC_EXISTS_ERR error = errors.New("Topic already exists")
 )
 
@@ -35,4 +37,15 @@ func (topic Topic) Create(client *pubsub.Client, ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func FromConfig(conf config.Configuration, variables map[string]string, client *pubsub.Client) []Topic {
+	var topics []Topic
+
+	for topicName, _ := range conf.Topics() {
+		topicName := topicName
+		topics = append(topics, New(topicName))
+	}
+
+	return topics
 }

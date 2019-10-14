@@ -2,6 +2,8 @@ package subscription
 
 import (
 	"context"
+	"pubsubroller/config"
+	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
@@ -64,4 +66,28 @@ func (subscription Subscription) Create(client *pubsub.Client, ctx context.Conte
 	}
 
 	return nil
+}
+
+func FromConfig(conf config.Configuration, variables map[string]string, client *pubsub.Client) []Subscription {
+	var subscriptions []Subscription
+
+	for topicName, topic := range conf.Topics() {
+		topicName := topicName
+		topic := topic
+
+		for _, sub := range topic.Subscriptions() {
+			endpoint := sub.Endpoint
+			for key, value := range variables {
+				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
+			}
+
+			subscriptions =
+				append(
+					subscriptions,
+					New(sub.Name, endpoint, sub.Pull, client.Topic(topicName)),
+				)
+		}
+	}
+
+	return subscriptions
 }

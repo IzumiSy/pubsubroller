@@ -22,12 +22,14 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 		sub := sub
 
 		egSubscriptions.Go(func() error {
-			if err := sub.Create(client, ctx); err != nil {
-				if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
-					subscriptionSkippedCount += 1
-					return nil
-				} else {
-					return err
+			if !opts.IsDryRun {
+				if err := sub.Create(client, ctx); err != nil {
+					if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
+						subscriptionSkippedCount += 1
+						return nil
+					} else {
+						return err
+					}
 				}
 			}
 
