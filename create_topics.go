@@ -1,13 +1,14 @@
 package main
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 	config "pubsubroller/config"
 	topic "pubsubroller/topic"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 func createTopics(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
@@ -16,16 +17,12 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 	topicCreatedCount := 0
 
 	fmt.Printf("\nStart creating topics...\n\n")
-	for topicName, _ := range conf.Topics() {
-		topicName := topicName
+
+	for _, tp := range topic.FromConfig(conf, opts.Variables, client) {
+		tp := tp
 
 		egTopics.Go(func() error {
-			err :=
-				topic.
-					New(topicName).
-					Create(client, ctx)
-
-			if err != nil {
+			if err := tp.Create(client, ctx); err != nil {
 				if errors.Cause(err) == topic.TOPIC_EXISTS_ERR {
 					topicSkippedCount += 1
 					return nil

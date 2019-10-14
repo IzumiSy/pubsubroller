@@ -1,30 +1,31 @@
 package subscription
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
+
+	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 )
 
 type Subscription struct {
-	topic 	 *pubsub.Topic
-	name     string 
-	endpoint string 
-	pull     bool   
+	topic    *pubsub.Topic
+	name     string
+	endpoint string
+	pull     bool
 }
 
 func New(name, endpoint string, pull bool, topic *pubsub.Topic) Subscription {
 	return Subscription{
-		topic: topic,
-		name: name,
+		topic:    topic,
+		name:     name,
 		endpoint: endpoint,
-		pull: pull,
+		pull:     pull,
 	}
 }
 
 var (
-	INTERNAL_ERR error = errors.New("Internal error")
-	SUBSCRIPTION_EXISTS_ERR error = errors.New("Subscription already exists")
+	INTERNAL_ERR              error = errors.New("Internal error")
+	SUBSCRIPTION_EXISTS_ERR   error = errors.New("Subscription already exists")
 	NO_ENDPOINT_SPECIFIED_ERR error = errors.New("No endpoint specified")
 )
 
@@ -36,7 +37,7 @@ func (subscription Subscription) Create(client *pubsub.Client, ctx context.Conte
 	}
 
 	if exists {
-		return SUBSCRIPTION_EXISTS_ERR 
+		return SUBSCRIPTION_EXISTS_ERR
 	}
 
 	if subscription.endpoint == "" {
@@ -51,13 +52,13 @@ func (subscription Subscription) Create(client *pubsub.Client, ctx context.Conte
 	}
 
 	_, err = client.CreateSubscription(
-			ctx, 
-			subscription.name, 
-			pubsub.SubscriptionConfig{
-				Topic: subscription.topic,
-				PushConfig: pushConfig,
-			},
-		)
+		ctx,
+		subscription.name,
+		pubsub.SubscriptionConfig{
+			Topic:      subscription.topic,
+			PushConfig: pushConfig,
+		},
+	)
 	if err != nil {
 		return errors.Wrap(err, INTERNAL_ERR.Error())
 	}

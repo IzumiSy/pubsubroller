@@ -1,14 +1,14 @@
 package main
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 	config "pubsubroller/config"
 	subscription "pubsubroller/subscription"
-	"strings"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
@@ -17,35 +17,23 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 	subscriptionCreatedCount := 0
 
 	fmt.Printf("\nStart creating subscriptions...\n\n")
-	for topicName, topic := range conf.Topics() {
-		topicName := topicName
-		topic := topic
 
-		for _, sub := range topic.Subscriptions() {
-			egSubscriptions.Go(func() error {
-				endpoint := sub.Endpoint
-				for key, value := range opts.Variables {
-					endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
+	for _, sub := range subscription.FromConfig(conf, opts.Variables, client) {
+		sub := sub
+
+		egSubscriptions.Go(func() error {
+			if err := sub.Create(client, ctx); err != nil {
+				if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
+					subscriptionSkippedCount += 1
+					return nil
+				} else {
+					return err
 				}
+			}
 
-				err :=
-					subscription.
-						New(sub.Name, endpoint, sub.Pull, client.Topic(topicName)).
-						Create(client, ctx)
-
-				if err != nil {
-					if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
-						subscriptionSkippedCount += 1
-						return nil
-					} else {
-						return err
-					}
-				}
-
-				subscriptionCreatedCount += 1
-				return nil
-			})
-		}
+			subscriptionCreatedCount += 1
+			return nil
+		})
 	}
 
 	if err := egSubscriptions.Wait(); err != nil {
