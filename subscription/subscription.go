@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	"pubsubroller/client"
 	"pubsubroller/config"
 	"strings"
 
@@ -36,14 +37,8 @@ var (
 	NO_ENDPOINT_SPECIFIED_ERR  error = errors.New("No endpoint specified")
 )
 
-type pubsubClient interface {
-	Topic(id string) *pubsub.Topic
-	Subscription(id string) *pubsub.Subscription
-	CreateSubscription(ctx context.Context, id string, cfg pubsub.SubscriptionConfig) (*pubsub.Subscription, error)
-}
-
-func (subscription Subscription) Create(client pubsubClient, ctx context.Context) error {
-	s := client.Subscription(subscription.name)
+func (subscription Subscription) Create(c client.SubscriptionClient, ctx context.Context) error {
+	s := c.Subscription(subscription.name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, INTERNAL_ERR.Error())
@@ -63,7 +58,7 @@ func (subscription Subscription) Create(client pubsubClient, ctx context.Context
 		pushConfig = pubsub.PushConfig{Endpoint: subscription.endpoint}
 	}
 
-	_, err = client.CreateSubscription(
+	_, err = c.CreateSubscription(
 		ctx,
 		subscription.name,
 		pubsub.SubscriptionConfig{
@@ -75,8 +70,8 @@ func (subscription Subscription) Create(client pubsubClient, ctx context.Context
 	return errors.Wrap(err, INTERNAL_ERR.Error())
 }
 
-func (subscription Subscription) Delete(client pubsubClient, ctx context.Context) error {
-	s := client.Subscription(subscription.name)
+func (subscription Subscription) Delete(c client.SubscriptionClient, ctx context.Context) error {
+	s := c.Subscription(subscription.name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, INTERNAL_ERR.Error())
@@ -89,7 +84,7 @@ func (subscription Subscription) Delete(client pubsubClient, ctx context.Context
 	return errors.Wrap(s.Delete(ctx), INTERNAL_ERR.Error())
 }
 
-func FromConfig(conf config.Configuration, variables map[string]string, client pubsubClient) []Subscription {
+func FromConfig(conf config.Configuration, variables map[string]string, c client.TopicClient) []Subscription {
 	var subscriptions []Subscription
 
 	for topicName, topic := range conf.Topics() {
@@ -105,7 +100,7 @@ func FromConfig(conf config.Configuration, variables map[string]string, client p
 			subscriptions =
 				append(
 					subscriptions,
-					New(sub.Name, endpoint, sub.Pull, client.Topic(topicName)),
+					New(sub.Name, endpoint, sub.Pull, c.Topic(topicName)),
 				)
 		}
 	}

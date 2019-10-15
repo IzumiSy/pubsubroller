@@ -2,9 +2,9 @@ package topic
 
 import (
 	"context"
+	"pubsubroller/client"
 	"pubsubroller/config"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 )
 
@@ -26,14 +26,8 @@ var (
 	TOPIC_NOT_FOUND_ERR error = errors.New("Topic not found")
 )
 
-type pubsubClient interface {
-	Topic(id string) *pubsub.Topic
-	Subscription(id string) *pubsub.Subscription
-	CreateTopic(ctx context.Context, id string) (*pubsub.Topic, error)
-}
-
-func (topic Topic) Create(client pubsubClient, ctx context.Context) error {
-	exists, err := client.Topic(topic.name).Exists(ctx)
+func (topic Topic) Create(c client.TopicClient, ctx context.Context) error {
+	exists, err := c.Topic(topic.name).Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, INTERNAL_ERR.Error())
 	}
@@ -42,12 +36,12 @@ func (topic Topic) Create(client pubsubClient, ctx context.Context) error {
 		return TOPIC_EXISTS_ERR
 	}
 
-	_, err = client.CreateTopic(ctx, topic.name)
+	_, err = c.CreateTopic(ctx, topic.name)
 	return errors.Wrap(err, INTERNAL_ERR.Error())
 }
 
-func (topic Topic) Delete(client pubsubClient, ctx context.Context) error {
-	tp := client.Topic(topic.name)
+func (topic Topic) Delete(c client.TopicClient, ctx context.Context) error {
+	tp := c.Topic(topic.name)
 
 	exists, err := tp.Exists(ctx)
 	if err != nil {
@@ -61,7 +55,7 @@ func (topic Topic) Delete(client pubsubClient, ctx context.Context) error {
 	return errors.Wrap(tp.Delete(ctx), INTERNAL_ERR.Error())
 }
 
-func FromConfig(conf config.Configuration, variables map[string]string, client pubsubClient) []Topic {
+func FromConfig(conf config.Configuration, variables map[string]string, c client.TopicClient) []Topic {
 	var topics []Topic
 
 	for topicName, _ := range conf.Topics() {
