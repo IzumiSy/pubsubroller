@@ -1,4 +1,5 @@
 # pubsubroller
+[![CircleCI](https://circleci.com/gh/IzumiSy/pubsubroller.svg?style=svg)](https://circleci.com/gh/IzumiSy/pubsubroller)
 
 GCP PubSub provisioning tool at a light speed :zap:
 
