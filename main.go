@@ -17,6 +17,7 @@ type Options struct {
 }
 
 func main() {
+	projectIdPtr := flag.String("projectId", "", "target GCP project ID")
 	configFilePathPtr := flag.String("config", "", "configuration file path")
 	endpointPtr := flag.String("endpoint", "", "service endpoint")
 	isDryRunPtr := flag.Bool("dry", false, "dry run")
@@ -37,16 +38,22 @@ func main() {
 		panic(err)
 	}
 
-	credentials, err := google.FindDefaultCredentials(ctx)
-	if err != nil {
-		panic(err)
-	}
-	if credentials == nil {
-		fmt.Println("Error: invalid credential")
-		return
+	var projectId string
+
+	if projectIdPtr != nil {
+		projectId = *projectIdPtr
+	} else {
+		credentials, err := google.FindDefaultCredentials(ctx)
+		if err != nil {
+			panic(err)
+		}
+		if credentials == nil {
+			fmt.Println("Error: invalid credential")
+			return
+		}
+		projectId = credentials.ProjectID
 	}
 
-	projectId := credentials.ProjectID
 	if len(projectId) == 0 {
 		fmt.Println("Error: Project ID must not be empty")
 		return
