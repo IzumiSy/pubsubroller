@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"pubsubroller/client"
 	config "pubsubroller/config"
 	subscription "pubsubroller/subscription"
@@ -12,12 +11,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func deleteSubscriptions(c client.PubsubClient, ctx context.Context, conf config.Configuration, opts Options) {
+func deleteSubscriptions(c client.PubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egSubscriptions := errgroup.Group{}
 	subscriptionSkippedCount := 0
 	subscriptionDeletedCount := 0
 
-	fmt.Println("Start deleting subscriptions...")
+	callbacks.Initialized()
 
 	for _, sub := range subscription.FromConfig(conf, opts.Variables, c) {
 		sub := sub
@@ -35,7 +34,7 @@ func deleteSubscriptions(c client.PubsubClient, ctx context.Context, conf config
 			}
 
 			subscriptionDeletedCount += 1
-			fmt.Printf("Subscription deleted: %s\n", sub.Name())
+			callbacks.Each(sub)
 			return nil
 		})
 	}
@@ -44,15 +43,15 @@ func deleteSubscriptions(c client.PubsubClient, ctx context.Context, conf config
 		panic(err)
 	}
 
-	fmt.Printf("Subscriptions deleted: %d, skipped: %d\n", subscriptionDeletedCount, subscriptionSkippedCount)
+	callbacks.Finalized(subscriptionDeletedCount, subscriptionSkippedCount)
 }
 
-func deleteTopics(c client.PubsubClient, ctx context.Context, conf config.Configuration, opts Options) {
+func deleteTopics(c client.PubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egTopics := errgroup.Group{}
 	topicSkippedCount := 0
 	topicDeletedCount := 0
 
-	fmt.Println("Start deleting topics...")
+	callbacks.Initialized()
 
 	for _, tp := range topic.FromConfig(conf, opts.Variables, c) {
 		tp := tp
@@ -70,7 +69,7 @@ func deleteTopics(c client.PubsubClient, ctx context.Context, conf config.Config
 			}
 
 			topicDeletedCount += 1
-			fmt.Printf("Topic deleted: %s\n", tp.Name())
+			callbacks.Each(tp)
 			return nil
 		})
 	}
@@ -79,5 +78,5 @@ func deleteTopics(c client.PubsubClient, ctx context.Context, conf config.Config
 		panic(err)
 	}
 
-	fmt.Printf("Topics deleted: %d, skipped: %d\n", topicDeletedCount, topicSkippedCount)
+	callbacks.Finalized(topicDeletedCount, topicSkippedCount)
 }

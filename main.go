@@ -94,11 +94,11 @@ func main() {
 	}
 
 	if isDeleteMode {
-		deleteTopics(client, ctx, configuration, opts)
-		deleteSubscriptions(client, ctx, configuration, opts)
+		deleteTopics(client, DeleteTopicsLogger{}, ctx, configuration, opts)
+		deleteSubscriptions(client, DeleteSubscriptionLogger{}, ctx, configuration, opts)
 	} else {
-		createTopics(client, ctx, configuration, opts)
-		createSubscriptions(client, ctx, configuration, opts)
+		createTopics(client, CreateTopicsLogger{}, ctx, configuration, opts)
+		createSubscriptions(client, CreateSubscriptionsLogger{}, ctx, configuration, opts)
 	}
 
 	return

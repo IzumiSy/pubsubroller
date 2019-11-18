@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"pubsubroller/client"
 	config "pubsubroller/config"
 	subscription "pubsubroller/subscription"
@@ -12,12 +11,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func createSubscriptions(c client.PubsubClient, ctx context.Context, conf config.Configuration, opts Options) {
+func createSubscriptions(c client.PubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egSubscriptions := errgroup.Group{}
 	subscriptionSkippedCount := 0
 	subscriptionCreatedCount := 0
 
-	fmt.Println("Start creating subscriptions...")
+	callbacks.Initialized()
 
 	for _, sub := range subscription.FromConfig(conf, opts.Variables, c) {
 		sub := sub
@@ -35,7 +34,7 @@ func createSubscriptions(c client.PubsubClient, ctx context.Context, conf config
 			}
 
 			subscriptionCreatedCount += 1
-			fmt.Printf("Subscription created: %s\n", sub.Name())
+			callbacks.Each(sub)
 			return nil
 		})
 	}
@@ -44,15 +43,15 @@ func createSubscriptions(c client.PubsubClient, ctx context.Context, conf config
 		panic(err)
 	}
 
-	fmt.Printf("Subscriptions created: %d, skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
+	callbacks.Finalized(subscriptionCreatedCount, subscriptionSkippedCount)
 }
 
-func createTopics(c client.PubsubClient, ctx context.Context, conf config.Configuration, opts Options) {
+func createTopics(c client.PubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egTopics := errgroup.Group{}
 	topicSkippedCount := 0
 	topicCreatedCount := 0
 
-	fmt.Println("Start creating topics...")
+	callbacks.Initialized()
 
 	for _, tp := range topic.FromConfig(conf, opts.Variables, c) {
 		tp := tp
@@ -70,7 +69,7 @@ func createTopics(c client.PubsubClient, ctx context.Context, conf config.Config
 			}
 
 			topicCreatedCount += 1
-			fmt.Printf("Topic created: %s\n", tp.Name())
+			callbacks.Each(tp)
 			return nil
 		})
 	}
@@ -79,5 +78,5 @@ func createTopics(c client.PubsubClient, ctx context.Context, conf config.Config
 		panic(err)
 	}
 
-	fmt.Printf("Topics created: %d, skipped: %d\n", topicCreatedCount, topicSkippedCount)
+	callbacks.Finalized(topicCreatedCount, topicSkippedCount)
 }
