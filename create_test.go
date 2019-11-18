@@ -53,13 +53,10 @@ func TestCreateSubscription(t *testing.T) {
 		Internal_Topics_: map[string]config.Topic{
 			"topic1": config.Topic{
 				Internal_Subscriptions_: []config.Subscription{
-					config.Subscription{
-						Name: "subscription1",
-					},
+					config.Subscription{Name: "subscription1"},
+					config.Subscription{Name: "subscription2"},
+					config.Subscription{Name: "subscription3"},
 				},
-			},
-			"topic2": config.Topic{
-				Internal_Subscriptions_: []config.Subscription{},
 			},
 		},
 	}
@@ -71,8 +68,6 @@ func TestCreateSubscription(t *testing.T) {
 	if !cb.IsInitialized {
 		t.Error("It must be initialized")
 	}
-
-	println(cb.Calls)
 
 	if !cb.IsFinazlied {
 		t.Error("It must be finalized")
