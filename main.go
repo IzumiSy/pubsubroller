@@ -18,7 +18,7 @@ type Options struct {
 
 func main() {
 	projectIdPtr := flag.String("projectId", "", "target GCP project ID")
-	configFilePathPtr := flag.String("config", "", "configuration file path")
+	configFilePathPtr := flag.String("config", "", "configuration file path (Required)")
 	endpointPtr := flag.String("endpoint", "", "service endpoint")
 	isDryRunPtr := flag.Bool("dry", false, "dry run")
 	isDeleteModePtr := flag.Bool("delete", false, "delete all topics and their subscriptions")
@@ -36,6 +36,7 @@ func main() {
 	configuration, err := config.Load(configFilePath)
 	if err != nil {
 		fmt.Printf("Error: %s. Make sure you give -config flag which is required.\n", err.Error())
+		fmt.Println("You can see more with -help option")
 		return
 	}
 
