@@ -35,7 +35,8 @@ func main() {
 
 	configuration, err := config.Load(configFilePath)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %s. Make sure you give -config flag which is required.\n", err.Error())
+		return
 	}
 
 	var projectId string
