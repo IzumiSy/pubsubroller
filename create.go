@@ -17,7 +17,7 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 	subscriptionSkippedCount := 0
 	subscriptionCreatedCount := 0
 
-	fmt.Printf("\nStart creating subscriptions...\n\n")
+	fmt.Println("Start creating subscriptions...")
 
 	for _, sub := range subscription.FromConfig(conf, opts.Variables, client) {
 		sub := sub
@@ -35,6 +35,7 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 			}
 
 			subscriptionCreatedCount += 1
+			fmt.Printf("Subscription created: %s\n", sub.Name())
 			return nil
 		})
 	}
@@ -43,7 +44,7 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 		panic(err)
 	}
 
-	fmt.Printf("\nSubscriptions created: %d, skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
+	fmt.Printf("Subscriptions created: %d, skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
 }
 
 func createTopics(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
@@ -51,7 +52,7 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 	topicSkippedCount := 0
 	topicCreatedCount := 0
 
-	fmt.Printf("\nStart creating topics...\n\n")
+	fmt.Println("Start creating topics...")
 
 	for _, tp := range topic.FromConfig(conf, opts.Variables, client) {
 		tp := tp
@@ -69,6 +70,7 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 			}
 
 			topicCreatedCount += 1
+			fmt.Printf("Topic created: %s\n", tp.Name())
 			return nil
 		})
 	}
@@ -77,5 +79,5 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 		panic(err)
 	}
 
-	fmt.Printf("\nTopics created: %d, skipped: %d\n", topicCreatedCount, topicSkippedCount)
+	fmt.Printf("Topics created: %d, skipped: %d\n", topicCreatedCount, topicSkippedCount)
 }

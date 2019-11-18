@@ -16,6 +16,10 @@ func New(name string) Topic {
 	return Topic{name: name}
 }
 
+func (topic Topic) Name() string {
+	return topic.name
+}
+
 var (
 	INTERNAL_ERR        error = errors.New("Internal error")
 	TOPIC_EXISTS_ERR    error = errors.New("Topic already exists")

@@ -17,7 +17,7 @@ func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 	subscriptionSkippedCount := 0
 	subscriptionDeletedCount := 0
 
-	fmt.Printf("\nStart deleting subscriptions...\n\n")
+	fmt.Println("Start deleting subscriptions...")
 
 	for _, sub := range subscription.FromConfig(conf, opts.Variables, client) {
 		sub := sub
@@ -35,6 +35,7 @@ func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 			}
 
 			subscriptionDeletedCount += 1
+			fmt.Printf("Subscription deleted: %s\n", sub.Name())
 			return nil
 		})
 	}
@@ -43,7 +44,7 @@ func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 		panic(err)
 	}
 
-	fmt.Printf("\nSubscriptions deleted: %d, skipped: %d\n", subscriptionDeletedCount, subscriptionSkippedCount)
+	fmt.Printf("Subscriptions deleted: %d, skipped: %d\n", subscriptionDeletedCount, subscriptionSkippedCount)
 }
 
 func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
@@ -51,7 +52,7 @@ func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 	topicSkippedCount := 0
 	topicDeletedCount := 0
 
-	fmt.Printf("\nStart deleting topics...\n\n")
+	fmt.Println("Start deleting topics...")
 
 	for _, tp := range topic.FromConfig(conf, opts.Variables, client) {
 		tp := tp
@@ -69,6 +70,7 @@ func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 			}
 
 			topicDeletedCount += 1
+			fmt.Printf("Topic deleted: %s\n", tp.Name())
 			return nil
 		})
 	}
@@ -77,5 +79,5 @@ func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 		panic(err)
 	}
 
-	fmt.Printf("\nTopics deleted: %d, skipped: %d\n", topicDeletedCount, topicSkippedCount)
+	fmt.Printf("Topics deleted: %d, skipped: %d\n", topicDeletedCount, topicSkippedCount)
 }

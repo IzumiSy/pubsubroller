@@ -1,19 +1,19 @@
 package config
 
 import (
-	"io/ioutil"
-	"gopkg.in/yaml.v2"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"strings"
 )
 
 type Configuration struct {
-	variables map[string]string `yaml:"variables"`
-	topics    map[string]Topic  `yaml:"topics"`
+	Internal_Variables_ map[string]string `yaml:"variables"`
+	Internal_Topics_    map[string]Topic  `yaml:"topics"`
 }
 
 type Topic struct {
-	subscriptions []Subscription `yaml:"subscriptions"`
+	Internal_Subscriptions_ []Subscription `yaml:"subscriptions"`
 }
 
 type Subscription struct {
@@ -34,7 +34,7 @@ func Load(path string) (Configuration, error) {
 		return configuration, err
 	}
 
-	err = yaml.Unmarshal(yamlBytes, &configuration)
+	err = yaml.UnmarshalStrict(yamlBytes, &configuration)
 	if err != nil {
 		return configuration, err
 	}
@@ -44,16 +44,16 @@ func Load(path string) (Configuration, error) {
 
 func (config Configuration) Variables(projectId string) map[string]string {
 	variables := make(map[string]string)
-	for key, value := range config.variables {
+	for key, value := range config.Internal_Variables_ {
 		variables[key] = strings.Replace(value, "${projectId}", projectId, -1)
 	}
 	return variables
 }
 
 func (config Configuration) Topics() map[string]Topic {
-	return config.topics
+	return config.Internal_Topics_
 }
 
 func (topic Topic) Subscriptions() []Subscription {
-	return topic.subscriptions
+	return topic.Internal_Subscriptions_
 }

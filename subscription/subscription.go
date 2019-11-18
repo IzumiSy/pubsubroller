@@ -25,6 +25,10 @@ func New(name, endpoint string, pull bool, topic *pubsub.Topic) Subscription {
 	}
 }
 
+func (subscription Subscription) Name() string {
+	return subscription.name
+}
+
 var (
 	INTERNAL_ERR               error = errors.New("Internal error")
 	SUBSCRIPTION_EXISTS_ERR    error = errors.New("Subscription already exists")
@@ -43,14 +47,13 @@ func (subscription Subscription) Create(client *pubsub.Client, ctx context.Conte
 		return SUBSCRIPTION_EXISTS_ERR
 	}
 
-	if subscription.endpoint == "" {
-		return errors.WithMessage(NO_ENDPOINT_SPECIFIED_ERR, subscription.name)
-	}
-
 	var pushConfig pubsub.PushConfig
 	if subscription.pull {
 		pushConfig = pubsub.PushConfig{}
 	} else {
+		if subscription.endpoint == "" {
+			return errors.WithMessage(NO_ENDPOINT_SPECIFIED_ERR, subscription.name)
+		}
 		pushConfig = pubsub.PushConfig{Endpoint: subscription.endpoint}
 	}
 
