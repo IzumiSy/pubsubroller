@@ -25,6 +25,10 @@ func New(name, endpoint string, pull bool, topic *pubsub.Topic) Subscription {
 	}
 }
 
+func (subscription Subscription) Name() string {
+	return subscription.name
+}
+
 var (
 	INTERNAL_ERR               error = errors.New("Internal error")
 	SUBSCRIPTION_EXISTS_ERR    error = errors.New("Subscription already exists")

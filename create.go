@@ -35,6 +35,7 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 			}
 
 			subscriptionCreatedCount += 1
+			fmt.Printf("Subscription created: %s\n", sub.Name())
 			return nil
 		})
 	}
@@ -69,6 +70,7 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 			}
 
 			topicCreatedCount += 1
+			fmt.Printf("Topic created: %s\n", tp.Name())
 			return nil
 		})
 	}

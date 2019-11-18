@@ -35,6 +35,7 @@ func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 			}
 
 			subscriptionDeletedCount += 1
+			fmt.Printf("Subscription deleted: %s\n", sub.Name())
 			return nil
 		})
 	}
@@ -69,6 +70,7 @@ func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 			}
 
 			topicDeletedCount += 1
+			fmt.Printf("Topic deleted: %s\n", tp.Name())
 			return nil
 		})
 	}
