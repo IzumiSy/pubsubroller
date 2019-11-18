@@ -19,8 +19,6 @@ Usage of pubsubroller:
     	dry run
   -endpoint string
     	service endpoint
-  -projectId string
-    	target GCP project ID
 ```
 
 ### Configuration Example
