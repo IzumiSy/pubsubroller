@@ -7,6 +7,7 @@ import (
 	config "pubsubroller/config"
 
 	"cloud.google.com/go/pubsub"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -16,28 +17,38 @@ type Options struct {
 }
 
 func main() {
-	projectIdPtr := flag.String("projectId", "", "target GCP project ID")
 	configFilePathPtr := flag.String("config", "", "configuration file path")
 	endpointPtr := flag.String("endpoint", "", "service endpoint")
 	isDryRunPtr := flag.Bool("dry", false, "dry run")
 	isDeleteModePtr := flag.Bool("delete", false, "delete all topics and their subscriptions")
 	flag.Parse()
 
-	projectId := *projectIdPtr
 	configFilePath := *configFilePathPtr
 	endpoint := *endpointPtr
 	isDryRun := *isDryRunPtr
 	isDeleteMode := *isDeleteModePtr
 
-	// projectIdとconfigFilePathは必須パラメータ
+	ctx := context.Background()
+
+	// configFilePathは必須パラメータ
 
 	configuration, err := config.Load(configFilePath)
 	if err != nil {
 		panic(err)
 	}
 
-	if projectId == "" {
-		fmt.Println("Error: GCP project ID required with `-projectId` option.")
+	credentials, err := google.FindDefaultCredentials(ctx)
+	if err != nil {
+		panic(err)
+	}
+	if credentials == nil {
+		fmt.Println("Error: invalid credential")
+		return
+	}
+
+	projectId := credentials.ProjectID
+	if len(projectId) == 0 {
+		fmt.Println("Error: Project ID must not be empty")
 		return
 	}
 
@@ -51,8 +62,6 @@ func main() {
 	if endpoint != "" {
 		opt = option.WithEndpoint(endpoint)
 	}
-
-	ctx := context.Background()
 
 	client, err := pubsub.NewClient(ctx, projectId)
 	if opt != nil {
