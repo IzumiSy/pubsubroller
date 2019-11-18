@@ -1,9 +1,9 @@
 package config
 
 import (
-	"io/ioutil"
-	"gopkg.in/yaml.v2"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"strings"
 )
 
@@ -34,7 +34,7 @@ func Load(path string) (Configuration, error) {
 		return configuration, err
 	}
 
-	err = yaml.Unmarshal(yamlBytes, &configuration)
+	err = yaml.UnmarshalStrict(yamlBytes, &configuration)
 	if err != nil {
 		return configuration, err
 	}

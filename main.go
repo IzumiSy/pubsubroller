@@ -33,10 +33,15 @@ func main() {
 
 	// configFilePathは必須パラメータ
 
+	if len(configFilePath) == 0 {
+		fmt.Println("Make sure you give -config flag which is required.")
+		fmt.Println("You can see more with -help option")
+		return
+	}
+
 	configuration, err := config.Load(configFilePath)
 	if err != nil {
-		fmt.Printf("Error: %s. Make sure you give -config flag which is required.\n", err.Error())
-		fmt.Println("You can see more with -help option")
+		fmt.Printf("Error: %s", err.Error())
 		return
 	}
 
