@@ -77,10 +77,7 @@ func main() {
 		opt = option.WithEndpoint(endpoint)
 	}
 
-	client, err := pubsub.NewClient(ctx, projectId)
-	if opt != nil {
-		client, err = pubsub.NewClient(ctx, projectId, opt)
-	}
+	client, err := pubsub.NewClient(ctx, projectId, opt)
 	if err != nil {
 		fmt.Println("Error on initializing pubsub client:", err.Error())
 		return
