@@ -3,53 +3,43 @@ package main
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"flag"
 	"fmt"
+	flags "github.com/jessevdk/go-flags"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	gcp "pubsubroller/adapters/google"
 	config "pubsubroller/config"
 )
 
-type Options struct {
+type appOptions struct {
 	IsDryRun  bool
 	Variables map[string]string
 }
 
+var opts struct {
+	ProjectID      string `short:"p" long:"projectId" description:"target GCP project ID"`
+	ConfigFilePath string `short:"c" long:"config" description:"configuration file path" required:"true"`
+	Endpoint       string `short:"e" long:"endpoint" description:"service endpoint"`
+	DryRun         bool   `long:"dry" description:"dry run"`
+	Delete         bool   `long:"delete" description:"delete all topics and their subscriptions"`
+}
+
 func main() {
-	projectIdPtr := flag.String("projectId", "", "target GCP project ID")
-	configFilePathPtr := flag.String("config", "", "configuration file path (Required)")
-	endpointPtr := flag.String("endpoint", "", "service endpoint")
-	isDryRunPtr := flag.Bool("dry", false, "dry run")
-	isDeleteModePtr := flag.Bool("delete", false, "delete all topics and their subscriptions")
-	flag.Parse()
-
-	configFilePath := *configFilePathPtr
-	endpoint := *endpointPtr
-	isDryRun := *isDryRunPtr
-	isDeleteMode := *isDeleteModePtr
-
-	ctx := context.Background()
-
-	// configFilePathは必須パラメータ
-
-	if len(configFilePath) == 0 {
-		fmt.Println("Make sure you give -config flag which is required.")
-		fmt.Println("You can see more with -help option")
+	_, err := flags.Parse(&opts)
+	if err != nil {
 		return
 	}
 
-	configuration, err := config.Load(configFilePath)
+	configuration, err := config.Load(opts.ConfigFilePath)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
 		return
 	}
 
-	var projectId string
+	ctx := context.Background()
+	projectID := opts.ProjectID
 
-	if projectIdPtr != nil {
-		projectId = *projectIdPtr
-	} else {
+	if projectID == "" {
 		credentials, err := google.FindDefaultCredentials(ctx)
 		if err != nil {
 			panic(err)
@@ -58,26 +48,22 @@ func main() {
 			fmt.Println("Error: invalid credential")
 			return
 		}
-		projectId = credentials.ProjectID
+		projectID = credentials.ProjectID
+
+		if projectID == "" {
+			fmt.Println("Error: Failed retrieving project ID from gcloud credentials.")
+			fmt.Println("Could you manually provide your project ID with --projectID option?")
+			return
+		}
 	}
-
-	if len(projectId) == 0 {
-		fmt.Println("Error: Project ID must not be empty")
-		return
-	}
-
-	fmt.Printf("Target project ID: %s\n\n", projectId)
-	variables := configuration.Variables(projectId)
-
-	// クライアント生成
 
 	var internalClient *pubsub.Client
 	var cerr error
 
-	if endpoint != "" {
-		internalClient, cerr = pubsub.NewClient(ctx, projectId, option.WithEndpoint(endpoint))
+	if opts.Endpoint != "" {
+		internalClient, cerr = pubsub.NewClient(ctx, projectID, option.WithEndpoint(opts.Endpoint))
 	} else {
-		internalClient, cerr = pubsub.NewClient(ctx, projectId)
+		internalClient, cerr = pubsub.NewClient(ctx, projectID)
 	}
 
 	if cerr != nil {
@@ -90,19 +76,19 @@ func main() {
 		Ctx:    ctx,
 	}
 
-	// 実行オプションを作成して実行
+	fmt.Printf("Target project ID: %s\n\n", projectID)
 
-	opts := Options{
-		IsDryRun:  isDryRun,
-		Variables: variables,
+	appOpts := appOptions{
+		IsDryRun:  opts.DryRun,
+		Variables: configuration.Variables(projectID),
 	}
 
-	if isDeleteMode {
-		deleteTopics(client, deleteTopicsLogger{}, ctx, configuration, opts)
-		deleteSubscriptions(client, deleteSubscriptionLogger{}, ctx, configuration, opts)
+	if opts.Delete {
+		deleteTopics(client, deleteTopicsLogger{}, ctx, configuration, appOpts)
+		deleteSubscriptions(client, deleteSubscriptionLogger{}, ctx, configuration, appOpts)
 	} else {
-		createTopics(client, createTopicsLogger{}, ctx, configuration, opts)
-		createSubscriptions(client, createSubscriptionsLogger{}, ctx, configuration, opts)
+		createTopics(client, createTopicsLogger{}, ctx, configuration, appOpts)
+		createSubscriptions(client, createSubscriptionsLogger{}, ctx, configuration, appOpts)
 	}
 
 	return

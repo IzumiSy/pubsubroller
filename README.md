@@ -10,16 +10,19 @@ $ go get github.com/IzumiSy/pubsubroller
 
 ## Usage
 ```bash
- $ pubsubroller -help
-Usage of pubsubroller:
-  -config string
-    	configuration file path
-  -delete
-    	delete all topics and their subscriptions
-  -dry
-    	dry run
-  -endpoint string
-    	service endpoint
+ $ pubsubroller --help
+Usage:
+  pubsubroller [OPTIONS]
+
+Application Options:
+  -p, --projectId= target GCP project ID
+  -c, --config=    configuration file path
+  -e, --endpoint=  service endpoint
+      --dry        dry run
+      --delete     delete all topics and their subscriptions
+
+Help Options:
+  -h, --help       Show this help messag
 ```
 
 ### Configuration Example
