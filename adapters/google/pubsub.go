@@ -1,9 +1,8 @@
-package client
+package google
 
 import (
-	"context"
-
 	"cloud.google.com/go/pubsub"
+	"context"
 )
 
 type TopicClient interface {

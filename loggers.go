@@ -2,62 +2,68 @@ package main
 
 import (
 	"fmt"
-	subscription "pubsubroller/subscription"
-	topic "pubsubroller/topic"
 )
 
-type CreateTopicsLogger struct{}
+// topic
 
-func (_ CreateTopicsLogger) Initialized() {
+type createTopicsLogger struct{}
+
+type namable interface {
+	Name() string
+}
+
+func (_ createTopicsLogger) Initialized() {
 	fmt.Println("Start creating topics...")
 }
 
-func (_ CreateTopicsLogger) Each(topic topic.Topic) {
+func (_ createTopicsLogger) Each(topic namable) {
 	fmt.Printf("Topic created: %s\n", topic.Name())
 }
 
-func (_ CreateTopicsLogger) Finalized(done int, skipped int) {
+func (_ createTopicsLogger) Finalized(done int, skipped int) {
 	fmt.Printf("Topics created: %d, skipped: %d\n", done, skipped)
 }
 
-type CreateSubscriptionsLogger struct{}
+type deleteTopicsLogger struct{}
 
-func (_ CreateSubscriptionsLogger) Initialized() {
-	fmt.Println("Start creating subscriptions...")
-}
-
-func (_ CreateSubscriptionsLogger) Each(subscription subscription.Subscription) {
-	fmt.Printf("Subscription creatd: %s\n", subscription.Name())
-}
-
-func (_ CreateSubscriptionsLogger) Finalized(done int, skipped int) {
-	fmt.Printf("Subscriptions created: %d, skipped: %d\n", done, skipped)
-}
-
-type DeleteTopicsLogger struct{}
-
-func (_ DeleteTopicsLogger) Initialized() {
+func (_ deleteTopicsLogger) Initialized() {
 	fmt.Println("Start deleting topics...")
 }
 
-func (_ DeleteTopicsLogger) Each(topic topic.Topic) {
+func (_ deleteTopicsLogger) Each(topic namable) {
 	fmt.Printf("Topic deleted: %s\n", topic.Name())
 }
 
-func (_ DeleteTopicsLogger) Finalized(done int, skipped int) {
+func (_ deleteTopicsLogger) Finalized(done int, skipped int) {
 	fmt.Printf("Topics deleted: %d, skipped: %d\n", done, skipped)
 }
 
-type DeleteSubscriptionLogger struct{}
+// subscription
 
-func (_ DeleteSubscriptionLogger) Initialized() {
+type createSubscriptionsLogger struct{}
+
+func (_ createSubscriptionsLogger) Initialized() {
+	fmt.Println("Start creating subscriptions...")
+}
+
+func (_ createSubscriptionsLogger) Each(subscription namable) {
+	fmt.Printf("Subscription creatd: %s\n", subscription.Name())
+}
+
+func (_ createSubscriptionsLogger) Finalized(done int, skipped int) {
+	fmt.Printf("Subscriptions created: %d, skipped: %d\n", done, skipped)
+}
+
+type deleteSubscriptionLogger struct{}
+
+func (_ deleteSubscriptionLogger) Initialized() {
 	fmt.Println("Start deleting subscriptions...")
 }
 
-func (_ DeleteSubscriptionLogger) Each(subscription subscription.Subscription) {
+func (_ deleteSubscriptionLogger) Each(subscription namable) {
 	fmt.Printf("Subscription deleted: %s\n", subscription.Name())
 }
 
-func (_ DeleteSubscriptionLogger) Finalized(done int, skipped int) {
+func (_ deleteSubscriptionLogger) Finalized(done int, skipped int) {
 	fmt.Printf("Subscriptions deleted: %d, skipped: %d\n", done, skipped)
 }

@@ -1,49 +1,46 @@
 package main
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"errors"
 	config "pubsubroller/config"
-	subscription "pubsubroller/subscription"
-
 	"testing"
-
-	"cloud.google.com/go/pubsub"
 )
 
-type FakeCallbacks struct {
+type fakeCallbacks struct {
 	IsInitialized bool
 	IsFinazlied   bool
 	Calls         int
 }
 
-func (f *FakeCallbacks) Initialized() {
+func (f *fakeCallbacks) Initialized() {
 	f.IsInitialized = true
 }
 
-func (f *FakeCallbacks) Each(subscription subscription.Subscription) {
+func (f *fakeCallbacks) Each(subscription namable) {
 	f.Calls++
 }
 
-func (f *FakeCallbacks) Finalized(done int, skipped int) {
+func (f *fakeCallbacks) Finalized(done int, skipped int) {
 	f.IsFinazlied = true
 }
 
-type FakeClient struct{}
+type fakeClient struct{}
 
-func (_ FakeClient) Subscription(id string) *pubsub.Subscription {
+func (_ fakeClient) Subscription(id string) *pubsub.Subscription {
 	return nil
 }
 
-func (_ FakeClient) CreateSubscription(ctx context.Context, id string, cfg pubsub.SubscriptionConfig) (*pubsub.Subscription, error) {
+func (_ fakeClient) CreateSubscription(ctx context.Context, id string, cfg pubsub.SubscriptionConfig) (*pubsub.Subscription, error) {
 	return nil, errors.New("mocked")
 }
 
-func (_ FakeClient) Topic(id string) *pubsub.Topic {
+func (_ fakeClient) Topic(id string) *pubsub.Topic {
 	return nil
 }
 
-func (_ FakeClient) CreateTopic(ctx context.Context, id string) (*pubsub.Topic, error) {
+func (_ fakeClient) CreateTopic(ctx context.Context, id string) (*pubsub.Topic, error) {
 	return nil, errors.New("mocked")
 }
 
@@ -61,9 +58,9 @@ func TestCreateSubscription(t *testing.T) {
 		},
 	}
 	opts := Options{}
-	cb := FakeCallbacks{}
+	cb := fakeCallbacks{}
 
-	createSubscriptions(FakeClient{}, &cb, ctx, conf, opts)
+	createSubscriptions(fakeClient{}, &cb, ctx, conf, opts)
 
 	if !cb.IsInitialized {
 		t.Error("It must be initialized")

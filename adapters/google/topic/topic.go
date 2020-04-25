@@ -2,10 +2,9 @@ package topic
 
 import (
 	"context"
-	"pubsubroller/client"
-	"pubsubroller/config"
-
 	"github.com/pkg/errors"
+	client "pubsubroller/adapters/google"
+	"pubsubroller/config"
 )
 
 type Topic struct {

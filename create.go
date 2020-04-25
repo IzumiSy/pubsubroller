@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"pubsubroller/client"
-	config "pubsubroller/config"
-	subscription "pubsubroller/subscription"
-	topic "pubsubroller/topic"
-
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
+	client "pubsubroller/adapters/google"
+	subscription "pubsubroller/adapters/google/subscription"
+	topic "pubsubroller/adapters/google/topic"
+	config "pubsubroller/config"
 )
 
 func createSubscriptions(c client.PubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {

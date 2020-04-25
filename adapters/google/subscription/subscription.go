@@ -1,13 +1,12 @@
 package subscription
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
-	"pubsubroller/client"
+	"github.com/pkg/errors"
+	client "pubsubroller/adapters/google"
 	"pubsubroller/config"
 	"strings"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/pkg/errors"
 )
 
 type Subscription struct {
