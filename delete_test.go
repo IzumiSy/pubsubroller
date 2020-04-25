@@ -5,18 +5,37 @@ import (
 	"testing"
 )
 
-func TestDeleteSubscription(t *testing.T) {
+func TestDelete(t *testing.T) {
 	ctx := context.Background()
 	opts := Options{}
-	cb := fakeCallbacks{}
 
-	deleteSubscriptions(fakeClient{}, &cb, ctx, mockConfig, opts)
+	t.Run("Subscription", func(t *testing.T) {
+		t.Parallel()
 
-	if !cb.IsInitialized {
-		t.Error("It must be initialized")
-	}
+		cb := fakeSubscriptionCallbacks{}
+		deleteSubscriptions(fakeClient{}, &cb, ctx, mockConfig, opts)
 
-	if !cb.IsFinazlied {
-		t.Error("It must be finalized")
-	}
+		if !cb.IsInitialized {
+			t.Error("It must be initialized")
+		}
+
+		if !cb.IsFinazlied {
+			t.Error("It must be finalized")
+		}
+	})
+
+	t.Run("Topic", func(t *testing.T) {
+		t.Parallel()
+
+		cb := fakeTopicCallbacks{}
+		deleteTopics(fakeClient{}, &cb, ctx, mockConfig, opts)
+
+		if !cb.IsInitialized {
+			t.Error("It must be initialized")
+		}
+
+		if !cb.IsFinazlied {
+			t.Error("It must be finalized")
+		}
+	})
 }
