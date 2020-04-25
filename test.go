@@ -23,7 +23,7 @@ func (f *fakeSubscriptionCallbacks) Each(_ subscription.Subscription) {
 	f.Calls++
 }
 
-func (f *fakeSubscriptionCallbacks) Finalized(done int, skipped int) {
+func (f *fakeSubscriptionCallbacks) Finalized(counter countable) {
 	f.IsFinazlied = true
 }
 
@@ -41,7 +41,7 @@ func (f *fakeTopicCallbacks) Each(_ topic.Topic) {
 	f.Calls++
 }
 
-func (f *fakeTopicCallbacks) Finalized(done int, skipped int) {
+func (f *fakeTopicCallbacks) Finalized(counter countable) {
 	f.IsFinazlied = true
 }
 

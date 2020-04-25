@@ -10,20 +10,20 @@ import (
 )
 
 func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+	subscriptions := subscription.FromConfig(conf, opts.Variables)
+	counter := counter{Total: len(subscriptions)}
 	egSubscriptions := errgroup.Group{}
-	subscriptionSkippedCount := 0
-	subscriptionCreatedCount := 0
 
 	callbacks.Initialized()
 
-	for _, sub := range subscription.FromConfig(conf, opts.Variables) {
+	for _, sub := range subscriptions {
 		sub := sub
 
 		egSubscriptions.Go(func() error {
 			if !opts.IsDryRun {
 				if err := client.CreateSubscription(sub); err != nil {
 					if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
-						subscriptionSkippedCount += 1
+						counter.Skipped()
 						return nil
 					} else {
 						return err
@@ -31,7 +31,7 @@ func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, c
 				}
 			}
 
-			subscriptionCreatedCount += 1
+			counter.Done()
 			callbacks.Each(sub)
 			return nil
 		})
@@ -41,24 +41,24 @@ func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, c
 		panic(err)
 	}
 
-	callbacks.Finalized(subscriptionCreatedCount, subscriptionSkippedCount)
+	callbacks.Finalized(counter)
 }
 
 func createTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+	topics := topic.FromConfig(conf, opts.Variables)
+	counter := counter{Total: len(topics)}
 	egTopics := errgroup.Group{}
-	topicSkippedCount := 0
-	topicCreatedCount := 0
 
 	callbacks.Initialized()
 
-	for _, tp := range topic.FromConfig(conf, opts.Variables) {
+	for _, tp := range topics {
 		tp := tp
 
 		egTopics.Go(func() error {
 			if !opts.IsDryRun {
 				if err := client.CreateTopic(tp); err != nil {
 					if errors.Cause(err) == topic.TOPIC_EXISTS_ERR {
-						topicSkippedCount += 1
+						counter.Skipped()
 						return nil
 					} else {
 						return err
@@ -66,7 +66,7 @@ func createTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Con
 				}
 			}
 
-			topicCreatedCount += 1
+			counter.Done()
 			callbacks.Each(tp)
 			return nil
 		})
@@ -76,5 +76,5 @@ func createTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Con
 		panic(err)
 	}
 
-	callbacks.Finalized(topicCreatedCount, topicSkippedCount)
+	callbacks.Finalized(counter)
 }

@@ -18,7 +18,8 @@ func (_ createTopicsLogger) Each(topic topic.Topic) {
 	fmt.Printf("Topic created: %s\n", topic.Name)
 }
 
-func (_ createTopicsLogger) Finalized(done int, skipped int) {
+func (_ createTopicsLogger) Finalized(counter countable) {
+	done, skipped := counter.Result()
 	fmt.Printf("Topics created: %d, skipped: %d\n", done, skipped)
 }
 
@@ -32,7 +33,8 @@ func (_ deleteTopicsLogger) Each(topic topic.Topic) {
 	fmt.Printf("Topic deleted: %s\n", topic.Name)
 }
 
-func (_ deleteTopicsLogger) Finalized(done int, skipped int) {
+func (_ deleteTopicsLogger) Finalized(counter countable) {
+	done, skipped := counter.Result()
 	fmt.Printf("Topics deleted: %d, skipped: %d\n", done, skipped)
 }
 
@@ -48,7 +50,8 @@ func (_ createSubscriptionsLogger) Each(subscription subscription.Subscription) 
 	fmt.Printf("Subscription creatd: %s\n", subscription.Name)
 }
 
-func (_ createSubscriptionsLogger) Finalized(done int, skipped int) {
+func (_ createSubscriptionsLogger) Finalized(counter countable) {
+	done, skipped := counter.Result()
 	fmt.Printf("Subscriptions created: %d, skipped: %d\n", done, skipped)
 }
 
@@ -62,6 +65,7 @@ func (_ deleteSubscriptionLogger) Each(subscription subscription.Subscription) {
 	fmt.Printf("Subscription deleted: %s\n", subscription.Name)
 }
 
-func (_ deleteSubscriptionLogger) Finalized(done int, skipped int) {
+func (_ deleteSubscriptionLogger) Finalized(counter countable) {
+	done, skipped := counter.Result()
 	fmt.Printf("Subscriptions deleted: %d, skipped: %d\n", done, skipped)
 }

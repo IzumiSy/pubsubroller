@@ -22,6 +22,10 @@ func TestCreate(t *testing.T) {
 		if !cb.IsFinazlied {
 			t.Error("It must be finalized")
 		}
+
+		if cb.Calls != 9 {
+			t.Errorf("Calls must be 9, but it is %d", cb.Calls)
+		}
 	})
 
 	t.Run("Topic", func(t *testing.T) {
@@ -36,6 +40,10 @@ func TestCreate(t *testing.T) {
 
 		if !cb.IsFinazlied {
 			t.Error("It must be finalized")
+		}
+
+		if cb.Calls != 3 {
+			t.Errorf("Calls must be 3, but it is %d", cb.Calls)
 		}
 	})
 }
