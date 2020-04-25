@@ -33,7 +33,10 @@ topics:
         endpoint: "${url}/sendInvitationMail"
       - name: sendGroupNotification
         endpoint: "${url}/sendGroupNotification"
+      - name: sendReinvitationMail
+        pull: true
 ```
+top level keys are `variables`, which replaces placeholder in subscription names and endpoints, and `topics` that have multiple subscriptions.
 
 ## Troubleshooting
 
