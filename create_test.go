@@ -13,7 +13,6 @@ func TestCreate(t *testing.T) {
 		t.Parallel()
 
 		cb := fakeSubscriptionCallbacks{}
-
 		createSubscriptions(fakeClient{}, &cb, ctx, mockConfig, opts)
 
 		if !cb.IsInitialized {
@@ -29,7 +28,6 @@ func TestCreate(t *testing.T) {
 		t.Parallel()
 
 		cb := fakeTopicCallbacks{}
-
 		createTopics(fakeClient{}, &cb, ctx, mockConfig, opts)
 
 		if !cb.IsInitialized {
