@@ -1,14 +1,14 @@
 package main
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"flag"
 	"fmt"
-	config "pubsubroller/config"
-
-	"cloud.google.com/go/pubsub"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+	gcp "pubsubroller/adapters/google"
+	config "pubsubroller/config"
 )
 
 type Options struct {
@@ -77,11 +77,13 @@ func main() {
 		opt = option.WithEndpoint(endpoint)
 	}
 
-	client, err := pubsub.NewClient(ctx, projectId, opt)
+	internalClient, err := pubsub.NewClient(ctx, projectId, opt)
 	if err != nil {
 		fmt.Println("Error on initializing pubsub client:", err.Error())
 		return
 	}
+
+	client := gcp.PubsubClient{internalClient}
 
 	// 実行オプションを作成して実行
 

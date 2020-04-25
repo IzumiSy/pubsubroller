@@ -2,20 +2,26 @@ package google
 
 import (
 	"cloud.google.com/go/pubsub"
-	"context"
+	"pubsubroller/subscription"
+	"pubsubroller/topic"
 )
 
-type TopicClient interface {
-	Topic(id string) *pubsub.Topic
-	CreateTopic(ctx context.Context, id string) (*pubsub.Topic, error)
+type PubsubClient struct {
+	Client *pubsub.Client
 }
 
-type SubscriptionClient interface {
-	Subscription(id string) *pubsub.Subscription
-	CreateSubscription(ctx context.Context, id string, cfg pubsub.SubscriptionConfig) (*pubsub.Subscription, error)
+func (c PubsubClient) CreateTopic(tp topic.Topic) error {
+	return nil
 }
 
-type PubsubClient interface {
-	TopicClient
-	SubscriptionClient
+func (c PubsubClient) DeleteTopic(tp topic.Topic) error {
+	return nil
+}
+
+func (c PubsubClient) CreateSubscription(sub subscription.Subscription) error {
+	return nil
+}
+
+func (c PubsubClient) DeleteSubscription(sub subscription.Subscription) error {
+	return nil
 }

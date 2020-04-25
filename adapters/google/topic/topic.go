@@ -1,66 +1,47 @@
 package topic
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"github.com/pkg/errors"
-	client "pubsubroller/adapters/google"
-	"pubsubroller/config"
+	"pubsubroller/topic"
 )
 
 type Topic struct {
 	name string
 }
 
-func New(name string) Topic {
-	return Topic{name: name}
+func New(topic topic.Topic) Topic {
+	return Topic{
+		name: topic.Name,
+	}
 }
 
-func (topic Topic) Name() string {
-	return topic.name
-}
-
-var (
-	INTERNAL_ERR        error = errors.New("Internal error")
-	TOPIC_EXISTS_ERR    error = errors.New("Topic already exists")
-	TOPIC_NOT_FOUND_ERR error = errors.New("Topic not found")
-)
-
-func (topic Topic) Create(c client.TopicClient, ctx context.Context) error {
-	exists, err := c.Topic(topic.name).Exists(ctx)
+func (tp Topic) Create(c *pubsub.Client, ctx context.Context) error {
+	exists, err := c.Topic(tp.name).Exists(ctx)
 	if err != nil {
-		return errors.Wrap(err, INTERNAL_ERR.Error())
+		return errors.Wrap(err, topic.INTERNAL_ERR.Error())
 	}
 
 	if exists {
-		return TOPIC_EXISTS_ERR
+		return topic.TOPIC_EXISTS_ERR
 	}
 
-	_, err = c.CreateTopic(ctx, topic.name)
-	return errors.Wrap(err, INTERNAL_ERR.Error())
+	_, err = c.CreateTopic(ctx, tp.name)
+	return errors.Wrap(err, topic.INTERNAL_ERR.Error())
 }
 
-func (topic Topic) Delete(c client.TopicClient, ctx context.Context) error {
-	tp := c.Topic(topic.name)
+func (tp Topic) Delete(c *pubsub.Client, ctx context.Context) error {
+	deletingTopic := c.Topic(tp.name)
 
-	exists, err := tp.Exists(ctx)
+	exists, err := deletingTopic.Exists(ctx)
 	if err != nil {
-		return errors.Wrap(err, INTERNAL_ERR.Error())
+		return errors.Wrap(err, topic.INTERNAL_ERR.Error())
 	}
 
 	if !exists {
-		return TOPIC_NOT_FOUND_ERR
+		return topic.TOPIC_NOT_FOUND_ERR
 	}
 
-	return errors.Wrap(tp.Delete(ctx), INTERNAL_ERR.Error())
-}
-
-func FromConfig(conf config.Configuration, variables map[string]string, c client.TopicClient) []Topic {
-	var topics []Topic
-
-	for topicName, _ := range conf.Topics() {
-		topicName := topicName
-		topics = append(topics, New(topicName))
-	}
-
-	return topics
+	return errors.Wrap(deletingTopic.Delete(ctx), topic.INTERNAL_ERR.Error())
 }

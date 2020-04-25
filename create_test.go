@@ -1,10 +1,10 @@
 package main
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
-	"errors"
 	config "pubsubroller/config"
+	"pubsubroller/subscription"
+	"pubsubroller/topic"
 	"testing"
 )
 
@@ -18,7 +18,7 @@ func (f *fakeCallbacks) Initialized() {
 	f.IsInitialized = true
 }
 
-func (f *fakeCallbacks) Each(subscription namable) {
+func (f *fakeCallbacks) Each(_ subscription.Subscription) {
 	f.Calls++
 }
 
@@ -28,20 +28,20 @@ func (f *fakeCallbacks) Finalized(done int, skipped int) {
 
 type fakeClient struct{}
 
-func (_ fakeClient) Subscription(id string) *pubsub.Subscription {
+func (_ fakeClient) CreateSubscription(_ subscription.Subscription) error {
 	return nil
 }
 
-func (_ fakeClient) CreateSubscription(ctx context.Context, id string, cfg pubsub.SubscriptionConfig) (*pubsub.Subscription, error) {
-	return nil, errors.New("mocked")
-}
-
-func (_ fakeClient) Topic(id string) *pubsub.Topic {
+func (_ fakeClient) DeleteSubscription(_ subscription.Subscription) error {
 	return nil
 }
 
-func (_ fakeClient) CreateTopic(ctx context.Context, id string) (*pubsub.Topic, error) {
-	return nil, errors.New("mocked")
+func (_ fakeClient) CreateTopic(_ topic.Topic) error {
+	return nil
+}
+
+func (_ fakeClient) DeleteTopic(_ topic.Topic) error {
+	return nil
 }
 
 func TestCreateSubscription(t *testing.T) {

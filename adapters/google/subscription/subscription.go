@@ -4,9 +4,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"github.com/pkg/errors"
-	client "pubsubroller/adapters/google"
-	"pubsubroller/config"
-	"strings"
+	"pubsubroller/subscription"
 )
 
 type Subscription struct {
@@ -16,93 +14,58 @@ type Subscription struct {
 	pull     bool
 }
 
-func New(name, endpoint string, pull bool, topic *pubsub.Topic) Subscription {
+func New(subscription subscription.Subscription, topic *pubsub.Topic) Subscription {
 	return Subscription{
 		topic:    topic,
-		name:     name,
-		endpoint: endpoint,
-		pull:     pull,
+		name:     subscription.Name,
+		endpoint: subscription.Endpoint,
+		pull:     subscription.Pull,
 	}
 }
 
-func (subscription Subscription) Name() string {
-	return subscription.name
-}
-
-var (
-	INTERNAL_ERR               error = errors.New("Internal error")
-	SUBSCRIPTION_EXISTS_ERR    error = errors.New("Subscription already exists")
-	SUBSCRIPTION_NOT_FOUND_ERR error = errors.New("Subscription not found")
-	NO_ENDPOINT_SPECIFIED_ERR  error = errors.New("No endpoint specified")
-)
-
-func (subscription Subscription) Create(c client.SubscriptionClient, ctx context.Context) error {
-	s := c.Subscription(subscription.name)
+func (sub Subscription) Create(c *pubsub.Client, ctx context.Context) error {
+	s := c.Subscription(sub.name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
-		return errors.Wrap(err, INTERNAL_ERR.Error())
+		return errors.Wrap(err, subscription.INTERNAL_ERR.Error())
 	}
 
 	if exists {
-		return SUBSCRIPTION_EXISTS_ERR
+		return subscription.SUBSCRIPTION_EXISTS_ERR
 	}
 
 	var pushConfig pubsub.PushConfig
-	if subscription.pull {
+	if sub.pull {
 		pushConfig = pubsub.PushConfig{}
 	} else {
-		if subscription.endpoint == "" {
-			return errors.WithMessage(NO_ENDPOINT_SPECIFIED_ERR, subscription.name)
+		if sub.endpoint == "" {
+			return errors.WithMessage(subscription.NO_ENDPOINT_SPECIFIED_ERR, sub.name)
 		}
-		pushConfig = pubsub.PushConfig{Endpoint: subscription.endpoint}
+		pushConfig = pubsub.PushConfig{Endpoint: sub.endpoint}
 	}
 
 	_, err = c.CreateSubscription(
 		ctx,
-		subscription.name,
+		sub.name,
 		pubsub.SubscriptionConfig{
-			Topic:      subscription.topic,
+			Topic:      sub.topic,
 			PushConfig: pushConfig,
 		},
 	)
 
-	return errors.Wrap(err, INTERNAL_ERR.Error())
+	return errors.Wrap(err, subscription.INTERNAL_ERR.Error())
 }
 
-func (subscription Subscription) Delete(c client.SubscriptionClient, ctx context.Context) error {
-	s := c.Subscription(subscription.name)
+func (sub Subscription) Delete(c *pubsub.Client, ctx context.Context) error {
+	s := c.Subscription(sub.name)
 	exists, err := s.Exists(ctx)
 	if err != nil {
-		return errors.Wrap(err, INTERNAL_ERR.Error())
+		return errors.Wrap(err, subscription.INTERNAL_ERR.Error())
 	}
 
 	if !exists {
-		return SUBSCRIPTION_NOT_FOUND_ERR
+		return subscription.SUBSCRIPTION_NOT_FOUND_ERR
 	}
 
-	return errors.Wrap(s.Delete(ctx), INTERNAL_ERR.Error())
-}
-
-func FromConfig(conf config.Configuration, variables map[string]string, c client.TopicClient) []Subscription {
-	var subscriptions []Subscription
-
-	for topicName, topic := range conf.Topics() {
-		topicName := topicName
-		topic := topic
-
-		for _, sub := range topic.Subscriptions() {
-			endpoint := sub.Endpoint
-			for key, value := range variables {
-				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
-			}
-
-			subscriptions =
-				append(
-					subscriptions,
-					New(sub.Name, endpoint, sub.Pull, c.Topic(topicName)),
-				)
-		}
-	}
-
-	return subscriptions
+	return errors.Wrap(s.Delete(ctx), subscription.INTERNAL_ERR.Error())
 }

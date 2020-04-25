@@ -1,16 +1,13 @@
 package main
 
-type topicLike interface {
-	Delete() error
-	Exists() (bool, error)
-}
+import (
+	"pubsubroller/subscription"
+	"pubsubroller/topic"
+)
 
-type subscriptionLike interface {
-	Delete() error
-	Exists() (bool, error)
-}
-
-type pubsubClient interface {
-	CreateTopic(name string) error
-	CreateSubscription(name string) error
+type pubsubClientLike interface {
+	CreateTopic(topic topic.Topic) error
+	DeleteTopic(topic topic.Topic) error
+	CreateSubscription(subscription subscription.Subscription) error
+	DeleteSubscription(subscription subscription.Subscription) error
 }
