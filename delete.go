@@ -2,31 +2,28 @@ package main
 
 import (
 	"context"
-	"fmt"
-	config "pubsubroller/config"
-	subscription "pubsubroller/subscription"
-	topic "pubsubroller/topic"
-
-	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
+	config "pubsubroller/config"
+	"pubsubroller/subscription"
+	"pubsubroller/topic"
 )
 
-func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
+func deleteSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+	subscriptions := subscription.FromConfig(conf, opts.Variables)
+	counter := counter{Total: len(subscriptions)}
 	egSubscriptions := errgroup.Group{}
-	subscriptionSkippedCount := 0
-	subscriptionDeletedCount := 0
 
-	fmt.Println("Start deleting subscriptions...")
+	callbacks.Initialized()
 
-	for _, sub := range subscription.FromConfig(conf, opts.Variables, client) {
+	for _, sub := range subscriptions {
 		sub := sub
 
 		egSubscriptions.Go(func() error {
 			if !opts.IsDryRun {
-				if err := sub.Delete(client, ctx); err != nil {
+				if err := client.DeleteSubscription(sub); err != nil {
 					if errors.Cause(err) == subscription.SUBSCRIPTION_NOT_FOUND_ERR {
-						subscriptionSkippedCount += 1
+						counter.Skipped()
 						return nil
 					} else {
 						return err
@@ -34,8 +31,8 @@ func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 				}
 			}
 
-			subscriptionDeletedCount += 1
-			fmt.Printf("Subscription deleted: %s\n", sub.Name())
+			counter.Done()
+			callbacks.Each(sub)
 			return nil
 		})
 	}
@@ -44,24 +41,24 @@ func deleteSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 		panic(err)
 	}
 
-	fmt.Printf("Subscriptions deleted: %d, skipped: %d\n", subscriptionDeletedCount, subscriptionSkippedCount)
+	callbacks.Finalized(counter)
 }
 
-func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
+func deleteTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+	topics := topic.FromConfig(conf, opts.Variables)
+	counter := counter{Total: len(topics)}
 	egTopics := errgroup.Group{}
-	topicSkippedCount := 0
-	topicDeletedCount := 0
 
-	fmt.Println("Start deleting topics...")
+	callbacks.Initialized()
 
-	for _, tp := range topic.FromConfig(conf, opts.Variables, client) {
+	for _, tp := range topics {
 		tp := tp
 
 		egTopics.Go(func() error {
 			if !opts.IsDryRun {
-				if err := tp.Delete(client, ctx); err != nil {
+				if err := client.DeleteTopic(tp); err != nil {
 					if errors.Cause(err) == topic.TOPIC_NOT_FOUND_ERR {
-						topicSkippedCount += 1
+						counter.Skipped()
 						return nil
 					} else {
 						return err
@@ -69,8 +66,8 @@ func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 				}
 			}
 
-			topicDeletedCount += 1
-			fmt.Printf("Topic deleted: %s\n", tp.Name())
+			counter.Done()
+			callbacks.Each(tp)
 			return nil
 		})
 	}
@@ -79,5 +76,5 @@ func deleteTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 		panic(err)
 	}
 
-	fmt.Printf("Topics deleted: %d, skipped: %d\n", topicDeletedCount, topicSkippedCount)
+	callbacks.Finalized(counter)
 }

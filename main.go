@@ -1,14 +1,14 @@
 package main
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"flag"
 	"fmt"
-	config "pubsubroller/config"
-
-	"cloud.google.com/go/pubsub"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+	gcp "pubsubroller/adapters/google"
+	config "pubsubroller/config"
 )
 
 type Options struct {
@@ -70,20 +70,24 @@ func main() {
 	variables := configuration.Variables(projectId)
 
 	// クライアント生成
-	// endpointが指定されていればここでクライアントに設定する
 
-	var opt option.ClientOption
+	var internalClient *pubsub.Client
+	var cerr error
+
 	if endpoint != "" {
-		opt = option.WithEndpoint(endpoint)
+		internalClient, cerr = pubsub.NewClient(ctx, projectId, option.WithEndpoint(endpoint))
+	} else {
+		internalClient, cerr = pubsub.NewClient(ctx, projectId)
 	}
 
-	client, err := pubsub.NewClient(ctx, projectId)
-	if opt != nil {
-		client, err = pubsub.NewClient(ctx, projectId, opt)
-	}
-	if err != nil {
+	if cerr != nil {
 		fmt.Println("Error on initializing pubsub client:", err.Error())
 		return
+	}
+
+	client := gcp.PubsubClient{
+		Client: internalClient,
+		Ctx:    ctx,
 	}
 
 	// 実行オプションを作成して実行
@@ -94,11 +98,11 @@ func main() {
 	}
 
 	if isDeleteMode {
-		deleteTopics(client, ctx, configuration, opts)
-		deleteSubscriptions(client, ctx, configuration, opts)
+		deleteTopics(client, deleteTopicsLogger{}, ctx, configuration, opts)
+		deleteSubscriptions(client, deleteSubscriptionLogger{}, ctx, configuration, opts)
 	} else {
-		createTopics(client, ctx, configuration, opts)
-		createSubscriptions(client, ctx, configuration, opts)
+		createTopics(client, createTopicsLogger{}, ctx, configuration, opts)
+		createSubscriptions(client, createSubscriptionsLogger{}, ctx, configuration, opts)
 	}
 
 	return

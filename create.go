@@ -2,31 +2,28 @@ package main
 
 import (
 	"context"
-	"fmt"
-	config "pubsubroller/config"
-	subscription "pubsubroller/subscription"
-	topic "pubsubroller/topic"
-
-	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
+	config "pubsubroller/config"
+	"pubsubroller/subscription"
+	"pubsubroller/topic"
 )
 
-func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
+func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+	subscriptions := subscription.FromConfig(conf, opts.Variables)
+	counter := counter{Total: len(subscriptions)}
 	egSubscriptions := errgroup.Group{}
-	subscriptionSkippedCount := 0
-	subscriptionCreatedCount := 0
 
-	fmt.Println("Start creating subscriptions...")
+	callbacks.Initialized()
 
-	for _, sub := range subscription.FromConfig(conf, opts.Variables, client) {
+	for _, sub := range subscriptions {
 		sub := sub
 
 		egSubscriptions.Go(func() error {
 			if !opts.IsDryRun {
-				if err := sub.Create(client, ctx); err != nil {
+				if err := client.CreateSubscription(sub); err != nil {
 					if errors.Cause(err) == subscription.SUBSCRIPTION_EXISTS_ERR {
-						subscriptionSkippedCount += 1
+						counter.Skipped()
 						return nil
 					} else {
 						return err
@@ -34,8 +31,8 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 				}
 			}
 
-			subscriptionCreatedCount += 1
-			fmt.Printf("Subscription created: %s\n", sub.Name())
+			counter.Done()
+			callbacks.Each(sub)
 			return nil
 		})
 	}
@@ -44,24 +41,24 @@ func createSubscriptions(client *pubsub.Client, ctx context.Context, conf config
 		panic(err)
 	}
 
-	fmt.Printf("Subscriptions created: %d, skipped: %d\n", subscriptionCreatedCount, subscriptionSkippedCount)
+	callbacks.Finalized(counter)
 }
 
-func createTopics(client *pubsub.Client, ctx context.Context, conf config.Configuration, opts Options) {
+func createTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+	topics := topic.FromConfig(conf, opts.Variables)
+	counter := counter{Total: len(topics)}
 	egTopics := errgroup.Group{}
-	topicSkippedCount := 0
-	topicCreatedCount := 0
 
-	fmt.Println("Start creating topics...")
+	callbacks.Initialized()
 
-	for _, tp := range topic.FromConfig(conf, opts.Variables, client) {
+	for _, tp := range topics {
 		tp := tp
 
 		egTopics.Go(func() error {
 			if !opts.IsDryRun {
-				if err := tp.Create(client, ctx); err != nil {
+				if err := client.CreateTopic(tp); err != nil {
 					if errors.Cause(err) == topic.TOPIC_EXISTS_ERR {
-						topicSkippedCount += 1
+						counter.Skipped()
 						return nil
 					} else {
 						return err
@@ -69,8 +66,8 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 				}
 			}
 
-			topicCreatedCount += 1
-			fmt.Printf("Topic created: %s\n", tp.Name())
+			counter.Done()
+			callbacks.Each(tp)
 			return nil
 		})
 	}
@@ -79,5 +76,5 @@ func createTopics(client *pubsub.Client, ctx context.Context, conf config.Config
 		panic(err)
 	}
 
-	fmt.Printf("Topics created: %d, skipped: %d\n", topicCreatedCount, topicSkippedCount)
+	callbacks.Finalized(counter)
 }

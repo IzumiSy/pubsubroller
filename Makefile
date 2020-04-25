@@ -1,10 +1,18 @@
-.PHONY: build clean rebuild
+.PHONY: build rebuild clean test update
 
-pubsubroller: main.go create.go delete.go config/config.go subscription/subscription.go topic/topic.go
-	GO111MODULES=on
-	go build -o pubsubroller
+pubsubroller: main.go
+	 GO111MODULE=on go build -o pubsubroller
 
 build: pubsubroller
 
+rebuild: clean pubsubroller
+
 clean:
 	rm -f pubsubroller
+
+update:
+	GO111MODULE=on go get -u
+	go mod tidy
+
+test:
+	GO111MODULE=on go test -v ./...
