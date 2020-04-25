@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
+	config "pubsubroller/config"
 	"testing"
 )
 
-func TestCreateSubscription(t *testing.T) {
+func TestDeleteSubscription(t *testing.T) {
 	ctx := context.Background()
 	opts := Options{}
 	cb := fakeCallbacks{}
 
-	createSubscriptions(fakeClient{}, &cb, ctx, mockConfig, opts)
+	deleteSubscriptions(fakeClient{}, &cb, ctx, mockConfig, opts)
 
 	if !cb.IsInitialized {
 		t.Error("It must be initialized")
