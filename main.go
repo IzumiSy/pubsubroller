@@ -70,15 +70,17 @@ func main() {
 	variables := configuration.Variables(projectId)
 
 	// クライアント生成
-	// endpointが指定されていればここでクライアントに設定する
 
-	var opt option.ClientOption
+	var internalClient *pubsub.Client
+	var cerr error
+
 	if endpoint != "" {
-		opt = option.WithEndpoint(endpoint)
+		internalClient, cerr = pubsub.NewClient(ctx, projectId, option.WithEndpoint(endpoint))
+	} else {
+		internalClient, cerr = pubsub.NewClient(ctx, projectId)
 	}
 
-	internalClient, err := pubsub.NewClient(ctx, projectId, opt)
-	if err != nil {
+	if cerr != nil {
 		fmt.Println("Error on initializing pubsub client:", err.Error())
 		return
 	}
