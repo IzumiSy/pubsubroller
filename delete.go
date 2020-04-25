@@ -9,7 +9,7 @@ import (
 	"pubsubroller/topic"
 )
 
-func deleteSubscriptions(client pubsubClientLike, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+func deleteSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egSubscriptions := errgroup.Group{}
 	subscriptionSkippedCount := 0
 	subscriptionDeletedCount := 0
@@ -44,7 +44,7 @@ func deleteSubscriptions(client pubsubClientLike, callbacks SubscriptionCallback
 	callbacks.Finalized(subscriptionDeletedCount, subscriptionSkippedCount)
 }
 
-func deleteTopics(client pubsubClientLike, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+func deleteTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egTopics := errgroup.Group{}
 	topicSkippedCount := 0
 	topicDeletedCount := 0

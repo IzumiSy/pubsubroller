@@ -83,7 +83,10 @@ func main() {
 		return
 	}
 
-	client := gcp.PubsubClient{internalClient}
+	client := gcp.PubsubClient{
+		Client: internalClient,
+		Ctx:    ctx,
+	}
 
 	// 実行オプションを作成して実行
 

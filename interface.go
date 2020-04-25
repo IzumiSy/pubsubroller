@@ -5,7 +5,7 @@ import (
 	"pubsubroller/topic"
 )
 
-type pubsubClientLike interface {
+type pubsubClient interface {
 	CreateTopic(topic topic.Topic) error
 	DeleteTopic(topic topic.Topic) error
 	CreateSubscription(subscription subscription.Subscription) error

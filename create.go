@@ -9,7 +9,7 @@ import (
 	"pubsubroller/topic"
 )
 
-func createSubscriptions(client pubsubClientLike, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egSubscriptions := errgroup.Group{}
 	subscriptionSkippedCount := 0
 	subscriptionCreatedCount := 0
@@ -44,7 +44,7 @@ func createSubscriptions(client pubsubClientLike, callbacks SubscriptionCallback
 	callbacks.Finalized(subscriptionCreatedCount, subscriptionSkippedCount)
 }
 
-func createTopics(client pubsubClientLike, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
+func createTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts Options) {
 	egTopics := errgroup.Group{}
 	topicSkippedCount := 0
 	topicCreatedCount := 0

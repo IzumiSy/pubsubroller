@@ -5,18 +5,19 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"pubsubroller/subscription"
+	"pubsubroller/topic"
 )
 
 type Subscription struct {
-	topic    *pubsub.Topic
+	topic    topic.Topic
 	name     string
 	endpoint string
 	pull     bool
 }
 
-func New(subscription subscription.Subscription, topic *pubsub.Topic) Subscription {
+func New(subscription subscription.Subscription) Subscription {
 	return Subscription{
-		topic:    topic,
+		topic:    subscription.Topic,
 		name:     subscription.Name,
 		endpoint: subscription.Endpoint,
 		pull:     subscription.Pull,
@@ -48,7 +49,7 @@ func (sub Subscription) Create(c *pubsub.Client, ctx context.Context) error {
 		ctx,
 		sub.name,
 		pubsub.SubscriptionConfig{
-			Topic:      sub.topic,
+			Topic:      c.Topic(sub.topic.Name),
 			PushConfig: pushConfig,
 		},
 	)

@@ -3,10 +3,12 @@ package subscription
 import (
 	"github.com/pkg/errors"
 	"pubsubroller/config"
+	"pubsubroller/topic"
 	"strings"
 )
 
 type Subscription struct {
+	Topic    topic.Topic
 	Name     string
 	Endpoint string
 	Pull     bool
@@ -22,17 +24,22 @@ var (
 func FromConfig(conf config.Configuration, variables map[string]string) []Subscription {
 	var subscriptions []Subscription
 
-	for _, topic := range conf.Topics() {
-		topic := topic
+	for topicName, tp := range conf.Topics() {
+		tp := tp
 
-		for _, sub := range topic.Subscriptions() {
+		for _, sub := range tp.Subscriptions() {
 			endpoint := sub.Endpoint
 			for key, value := range variables {
 				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
 			}
 
 			subscriptions =
-				append(subscriptions, Subscription{sub.Name, endpoint, sub.Pull})
+				append(subscriptions, Subscription{
+					Topic:    topic.Topic{topicName},
+					Name:     sub.Name,
+					Endpoint: endpoint,
+					Pull:     sub.Pull,
+				})
 		}
 	}
 
