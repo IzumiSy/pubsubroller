@@ -29,14 +29,16 @@ func FromConfig(conf config.Configuration, variables map[string]string) []Subscr
 
 		for _, sub := range tp.Subscriptions() {
 			endpoint := sub.Endpoint
+			name := sub.Name
 			for key, value := range variables {
 				endpoint = strings.Replace(endpoint, "${"+key+"}", value, -1)
+				name = strings.Replace(name, "${"+key+"}", value, -1)
 			}
 
 			subscriptions =
 				append(subscriptions, Subscription{
 					Topic:    topic.Topic{topicName},
-					Name:     sub.Name,
+					Name:     name,
 					Endpoint: endpoint,
 					Pull:     sub.Pull,
 				})
