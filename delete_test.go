@@ -7,7 +7,7 @@ import (
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	opts := Options{}
+	opts := appOptions{}
 
 	t.Run("Subscription", func(t *testing.T) {
 		t.Parallel()
