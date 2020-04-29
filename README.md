@@ -1,7 +1,16 @@
 # pubsubroller
 [![CircleCI](https://circleci.com/gh/IzumiSy/pubsubroller.svg?style=svg)](https://circleci.com/gh/IzumiSy/pubsubroller)
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
 GCP PubSub provisioning tool at a light speed :zap:
+
+## Table of Contents
+- [Install](#Install)
+- [Usage](#Usage)
+- [Troubleshooting](#Troubleshooting)
+- [Development](#Development)
+- [Contributions](#Contributions)
+- [License](#License)
 
 ## Install
 ```bash
@@ -58,3 +67,9 @@ $ gcloud auth application-default login
 ```bash
 $ make
 ```
+
+## Contributions
+PRs accepted
+
+## License
+MIT © IzumiSy
