@@ -72,25 +72,25 @@ func (_ fakeClient) DeleteTopic(_ topic.Topic) error {
 var (
 	mockConfig = config.Configuration{
 		Internal_Topics_: map[string]config.Topic{
-			"topic1": config.Topic{
+			"topic1": {
 				Internal_Subscriptions_: []config.Subscription{
-					config.Subscription{Name: "subscription11"},
-					config.Subscription{Name: "subscription12"},
-					config.Subscription{Name: "subscription13"},
+					{Name: "subscription11"},
+					{Name: "subscription12"},
+					{Name: "subscription13"},
 				},
 			},
-			"topic2": config.Topic{
+			"topic2": {
 				Internal_Subscriptions_: []config.Subscription{
-					config.Subscription{Name: "subscription21"},
-					config.Subscription{Name: "subscription22"},
-					config.Subscription{Name: "subscription23"},
+					{Name: "subscription21"},
+					{Name: "subscription22"},
+					{Name: "subscription23"},
 				},
 			},
-			"topic3": config.Topic{
+			"topic3": {
 				Internal_Subscriptions_: []config.Subscription{
-					config.Subscription{Name: "subscription31"},
-					config.Subscription{Name: "subscription32"},
-					config.Subscription{Name: "subscription33"},
+					{Name: "subscription31"},
+					{Name: "subscription32"},
+					{Name: "subscription33"},
 				},
 			},
 		},

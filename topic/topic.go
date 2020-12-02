@@ -18,7 +18,7 @@ var (
 func FromConfig(conf config.Configuration, variables map[string]string) []Topic {
 	var topics []Topic
 
-	for topicName, _ := range conf.Topics() {
+	for topicName := range conf.Topics() {
 		topicName := topicName
 		topics = append(topics, Topic{topicName})
 	}

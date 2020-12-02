@@ -9,17 +9,17 @@ func TestSubscription(t *testing.T) {
 	t.Run("FromConfig", func(t *testing.T) {
 		mockConfig := config.Configuration{
 			Internal_Topics_: map[string]config.Topic{
-				"topic1": config.Topic{
+				"topic1": {
 					Internal_Subscriptions_: []config.Subscription{
-						config.Subscription{
+						{
 							Name:     "subscription${suffix1}",
 							Endpoint: "https://example.com/path1",
 						},
-						config.Subscription{
+						{
 							Name:     "subscription2",
 							Endpoint: "https://example.com/${path2}",
 						},
-						config.Subscription{
+						{
 							Name:     "subscription${suffix3}",
 							Endpoint: "https://example.com/${path3}",
 						},

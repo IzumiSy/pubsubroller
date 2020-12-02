@@ -37,7 +37,7 @@ func FromConfig(conf config.Configuration, variables map[string]string) []Subscr
 
 			subscriptions =
 				append(subscriptions, Subscription{
-					Topic:    topic.Topic{topicName},
+					Topic:    topic.Topic{Name: topicName},
 					Name:     name,
 					Endpoint: endpoint,
 					Pull:     sub.Pull,
