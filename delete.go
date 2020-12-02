@@ -41,7 +41,7 @@ func deleteSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, c
 		panic(err)
 	}
 
-	callbacks.Finalized(counter)
+	callbacks.Finalized(&counter)
 }
 
 func deleteTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts appOptions) {
@@ -76,5 +76,5 @@ func deleteTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Con
 		panic(err)
 	}
 
-	callbacks.Finalized(counter)
+	callbacks.Finalized(&counter)
 }
