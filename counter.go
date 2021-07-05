@@ -7,8 +7,6 @@ import (
 // mutex counter
 
 type counter struct {
-	Total int
-
 	sync.Mutex
 	done    int
 	skipped int

@@ -11,7 +11,7 @@ import (
 
 func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, ctx context.Context, conf config.Configuration, opts appOptions) {
 	subscriptions := subscription.FromConfig(conf, opts.Variables)
-	counter := counter{Total: len(subscriptions)}
+	counter := counter{}
 	egSubscriptions := errgroup.Group{}
 
 	callbacks.Initialized()
@@ -46,7 +46,7 @@ func createSubscriptions(client pubsubClient, callbacks SubscriptionCallbacks, c
 
 func createTopics(client pubsubClient, callbacks TopicCallbacks, ctx context.Context, conf config.Configuration, opts appOptions) {
 	topics := topic.FromConfig(conf, opts.Variables)
-	counter := counter{Total: len(topics)}
+	counter := counter{}
 	egTopics := errgroup.Group{}
 
 	callbacks.Initialized()
